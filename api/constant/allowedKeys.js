@@ -1,0 +1,16 @@
+exports.userAllowedKeys = [
+  'username',
+  'password',
+  'email',
+  'phone',
+  'birthday',
+  'profileImg',
+  'preferredPosition',
+  'preferredLocation',
+  'skillLevel',
+  'passwordResetToken',
+  'passwordResetExpires',
+  'roleId',
+  'created_at',
+  'updated_at',
+];
