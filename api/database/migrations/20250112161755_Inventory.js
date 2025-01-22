@@ -26,6 +26,7 @@ exports.up = async function (knex) {
     table.integer('quantity').notNullable(); // Quantity
     table.string('deadline').notNullable(); // Deadline
     table.text('reason'); // Description
+    table.string('image');
     table
       .enum('status', ['pending', 'approved', 'delivered'])
       .defaultTo('pending'); // Status

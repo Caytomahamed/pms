@@ -1,18 +1,16 @@
 const express = require('express');
 const replacementController = require('../controllers/replacementController');
-const { route } = require('./salesRoutes');
+const upload = require('../utils/uploadFile');
 
 const router = express.Router();
 
 router.get('/farmer/:id', replacementController.getReplaceMentByFamer);
 
-router
-  .route('/')
-  .get(replacementController.getAllReplacement)
-  .post(
-    replacementController.checkOrderId,
-    replacementController.createReplacement
-  );
+router.route('/').get(replacementController.getAllReplacement).post(
+  upload.uploadFile,
+  replacementController.checkOrderId,
+  replacementController.createReplacement
+);
 
 router
   .route('/:id')

@@ -86,6 +86,7 @@ export const useUsersStore = create<UsersStore>((set) => ({
         throw new Error('Failed to fetch Users');
       }
       const Users: User[] = await response.json().then((data) => data.data);
+      // console.log('users', Users);
       set(() => ({ Users }));
     } catch (error) {
       console.error('Error fetching Users:', error);

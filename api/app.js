@@ -21,7 +21,18 @@ app.use(
   })
 );
 
+// access the uploads
+app.use('/uploads', express.static('uploads'));
+
 app.use(express.json());
+
+// Log requests
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  console.log('Body:', req.body);
+  next();
+});
 
 // Routes
 app.use('/api/v1/users', userRouter);

@@ -24,7 +24,7 @@ interface ReplacementStore {
   deleteReplacement: (id: number) => Promise<void>;
 }
 
-export const useReplacementStore = create<ReplacementStore>((set) => ({
+export const useReplacementStore = create<ReplacementStore>((set) => ({ 
   replacements: [],
   addError: null,
   updateError: null,
@@ -63,16 +63,25 @@ export const useReplacementStore = create<ReplacementStore>((set) => ({
 
   addReplacement: async (replacement) => {
     try {
+      const { image, ...replacementData } = replacement; // Destructure to separate the image file from other data
+
+      const formData = new FormData();
+      formData.append('body', JSON.stringify(replacementData)); // Add replacement data
+      if (image && image.length > 0) {
+        formData.append('file', image[0]); // Add the file directly to FormData
+      }
+
       const response = await fetch(BASE_URL, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(replacement),
+        body: formData,
       });
 
       if (!response.ok) {
-        throw new Error('Failed to add replacement');
+        const errorResponse = await response.json();
+        console.error('Server Error:', errorResponse);
+        throw new Error(
+          `Failed to add replacement: ${response.statusText} (${errorResponse.message})`
+        );
       }
 
       const newReplacement: Replacement = await response

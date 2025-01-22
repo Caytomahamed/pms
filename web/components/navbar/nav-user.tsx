@@ -17,12 +17,26 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from '@/components/ui/sidebar';
-import { User } from '@/types';
 
 import { useUsersStore } from '@/store/usersStore';
 
+interface User {
+  id: number;
+  username: string;
+  fullName: string;
+  phone: string;
+  address: string;
+  roleId?: number;
+  role?: string;
+  status: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
+
+  console.log('USER SIDEBAR', user);
 
   const logOut = useUsersStore((state) => state.logOut);
 

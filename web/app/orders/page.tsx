@@ -27,7 +27,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { CalendarIcon, Edit, Trash, User } from 'lucide-react';
+import { CalendarIcon, Edit, Trash } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 import { EggOrder } from '@/types';
@@ -182,7 +182,7 @@ export default function OrdersPage() {
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="farmerId">Farmer</Label>
-                {User.length > 0 ? (
+                {Users.length > 0 ? (
                   <select
                     id="farmerId"
                     value={formData.farmerId || ''}
@@ -199,7 +199,7 @@ export default function OrdersPage() {
                     </option>
                     {Users.map((customer) => (
                       <option key={customer.id} value={customer.id}>
-                        {customer.username}
+                        {customer.fullName}
                       </option>
                     ))}
                   </select>

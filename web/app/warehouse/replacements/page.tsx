@@ -20,7 +20,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { CalendarIcon, Edit, Trash } from 'lucide-react';
+import { CalendarIcon, Edit, Trash, MoreVertical } from 'lucide-react';
 import { Calendar } from '@/components/ui/calendar';
 import { Replacement } from '@/types';
 import { Textarea } from '@/components/ui/textarea';
@@ -30,6 +30,16 @@ import {
   PopoverTrigger,
 } from '@radix-ui/react-popover';
 import { format } from 'date-fns';
+import { cn } from '@/utlis';
+import Image from 'next/image';
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function ReplacementPage() {
   const {
@@ -45,12 +55,20 @@ export default function ReplacementPage() {
     type: 'success' | 'error';
   } | null>(null);
 
-  const [replacementForm, setReplacementForm] = useState({
+  const [replacementForm, setReplacementForm] = useState<{
+    orderId: string;
+    quantity: string;
+    reason: string;
+    deadline: Date;
+    status: Replacement['status'];
+    image: FileList | undefined;
+  }>({
     orderId: '',
     quantity: '',
     reason: '',
     deadline: new Date(),
     status: 'pending',
+    image: undefined,
   });
 
   const [editReplacementId, setEditReplacementId] = useState<number | null>(
@@ -71,6 +89,7 @@ export default function ReplacementPage() {
           quantity: parseInt(replacementForm.quantity),
           reason: replacementForm.reason,
           deadline: replacementForm.deadline,
+          status: replacementForm.status as Replacement['status'],
         });
         setToast({
           message: 'Replacement updated successfully!',
@@ -78,13 +97,12 @@ export default function ReplacementPage() {
         });
       } else {
         await addReplacement({
-          // name: replacementForm.name,
           quantity: parseInt(replacementForm.quantity),
           reason: replacementForm.reason,
-          // notes: replacementForm.notes,
           deadline: new Date(),
           status: 'pending',
-          orderId: 1,
+          orderId: Number(replacementForm.orderId),
+          image: replacementForm.image,
         });
         setToast({
           message: 'Replacement added successfully!',
@@ -97,6 +115,7 @@ export default function ReplacementPage() {
         reason: '',
         deadline: new Date(),
         status: 'pending',
+        image: undefined,
       });
       setEditReplacementId(null);
       setDialogOpen(false);
@@ -112,6 +131,7 @@ export default function ReplacementPage() {
       deadline: item.deadline,
       reason: item.reason,
       status: item.status,
+      image: item.image ? (item.image as FileList) : undefined,
     });
     setEditReplacementId(Number(item.id));
     setDialogOpen(true);
@@ -126,6 +146,30 @@ export default function ReplacementPage() {
       });
     } catch {
       setToast({ message: 'Error deleting replacement', type: 'error' });
+    }
+  };
+
+  const displayReplacementImageOrVideo = (filename: string) => {
+    const fileType = filename.split('.')[1];
+
+    if (['jpg', 'jpeg', 'png'].includes(fileType)) {
+      return (
+        <Image
+          src={`http://localhost:9000/uploads/${filename}`}
+          width={100}
+          height={100}
+          alt={`Replacement image for order ${filename}`}
+        />
+      );
+    } else if (['mp4'].includes(fileType)) {
+      return (
+        <video width="100" height="100" controls>
+          <source
+            src={`http://localhost:9000/uploads/${filename}`}
+            type="video/mp4"
+          />
+        </video>
+      );
     }
   };
 
@@ -211,6 +255,40 @@ export default function ReplacementPage() {
                   />
                 </PopoverContent>
               </Popover>
+
+              <Label>Replacement Image</Label>
+              <Input
+                id="image"
+                type="file"
+                onChange={(e) => {
+                  if (!e.target.files) return;
+                  setReplacementForm({
+                    ...replacementForm,
+                    image: e.target.files,
+                  });
+                }}
+              />
+
+              {editReplacementId && (
+                <>
+                  <Label htmlFor="status">Status</Label>
+                  <select
+                    id="status"
+                    value={replacementForm.status}
+                    onChange={(e) =>
+                      setReplacementForm({
+                        ...replacementForm,
+                        status: e.target.value as Replacement['status'],
+                      })
+                    }
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                  >
+                    <option value="pending">Pending</option>
+                    <option value="approved">Approved</option>
+                    <option value="delivered">Delivered</option>
+                  </select>
+                </>
+              )}
             </div>
 
             <DialogFooter>
@@ -228,6 +306,25 @@ export default function ReplacementPage() {
             <CardDescription>Overview of all replacements</CardDescription>
           </CardHeader>
           <CardContent>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                {/* <Button variant="outline">Open</Button> */}
+                <MoreVertical className="h-5 w-5" />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-14">
+                <DropdownMenuGroup>
+                  <DropdownMenuItem>
+                    <Edit />
+                    <span>Edit</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Trash color="red" />
+                    <span className="text-red-500">Delete</span>
+                  </DropdownMenuItem>
+                </DropdownMenuGroup>
+              </DropdownMenuContent>
+            </DropdownMenu>
+
             <div className="space-y-4">
               {replacements.length > 0 ? (
                 replacements.map((item) => (
@@ -235,6 +332,9 @@ export default function ReplacementPage() {
                     <CardContent className="pt-6">
                       <div className="flex justify-between items-start">
                         <div>
+                          {item.image &&
+                            displayReplacementImageOrVideo(item.image)}
+
                           <p className="font-semibold">Order #{item.orderId}</p>
                           <p className="text-sm text-muted-foreground">
                             Quantity: {item.quantity}
@@ -248,7 +348,20 @@ export default function ReplacementPage() {
                           </p>
                         </div>
 
-                        <div className="flex justify-end items-center gap-2">
+                        <div className="flex-col justify-end items-center gap-2 ">
+                          <div
+                            className={cn(
+                              'px-2.5 py-0.5 rounded-full text-xs font-semibold mb-10',
+                              item.status === 'pending' &&
+                                'bg-yellow-100 text-yellow-800',
+                              item.status === 'approved' &&
+                                'bg-red-100 text-red-800',
+                              item.status === 'delivered' &&
+                                'bg-blue-100 text-blue-800'
+                            )}
+                          >
+                            {item.status}
+                          </div>
                           <Button
                             variant="outline"
                             size="sm"

@@ -7,12 +7,15 @@ const userModel = require('../models/userModel');
 
 // check if orderId exist
 exports.checkOrderId = catchAsync(async (req, res, next) => {
-  const order = await orderModel.find({ id: req.body.orderId });
+  const body = JSON.parse(req.body.body);
+  const order = await orderModel.find({ id: body.orderId });
 
   console.log('order', order);
   if (!order || order.length === 0) {
     return next(new AppError('Order not found', 404));
   }
+
+  req.body = { ...body, image: req.filename };
   next();
 });
 

@@ -69,6 +69,7 @@ export const useOrdersStore = create<OrdersStore>((set) => ({
       });
       if (!response.ok) {
         const result = await response.json();
+        console.log('order created', result);
         set(() => ({ addError: result.message || 'Failed to add User' }));
         throw new Error('Failed to create order');
       }

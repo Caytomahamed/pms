@@ -102,27 +102,27 @@ const data = {
       icon: Egg,
       color: 'text-sky-500',
     },
-    {
-      title: 'Farmer',
-      icon: Truck,
-      url: '#',
-      color: 'text-green-500',
-      isActive: true,
-      items: [
-        {
-          title: 'Orders',
-          url: '/farmer/orders',
-          icon: Egg,
-          color: 'text-sky-500',
-        },
-        {
-          title: 'Replacements',
-          url: '/farmer/replacements',
-          icon: Replace,
-          color: 'text-red-600',
-        },
-      ],
-    },
+    // {
+    //   title: 'Farmer',
+    //   icon: Truck,
+    //   url: '#',
+    //   color: 'text-green-500',
+    //   isActive: true,
+    //   items: [
+    //     {
+    //       title: 'Orders',
+    //       url: '/farmer/orders',
+    //       icon: Egg,
+    //       color: 'text-sky-500',
+    //     },
+    //     {
+    //       title: 'Replacements',
+    //       url: '/farmer/replacements',
+    //       icon: Replace,
+    //       color: 'text-red-600',
+    //     },
+    //   ],
+    // },
     {
       title: 'Warehouse',
       icon: Warehouse,
@@ -150,12 +150,12 @@ const data = {
       icon: ChartBar,
       color: 'text-pink-500',
     },
-    {
-      title: 'SalesMan',
-      url: '/salesman',
-      icon: DollarSign,
-      color: 'text-cyan-500',
-    },
+    // {
+    //   title: 'SalesMan',
+    //   url: '/salesman',
+    //   icon: DollarSign,
+    //   color: 'text-cyan-500',
+    // },
     // {
     //   title: 'Reports',
     //   icon: Settings,
@@ -173,7 +173,7 @@ const data = {
       items: [
         {
           title: 'Orders',
-          url: '/farmer/order',
+          url: '/farmer/orders',
           icon: Egg,
           color: 'text-sky-500',
         },
@@ -214,7 +214,8 @@ interface User {
   fullName: string;
   phone: string;
   address: string;
-  roleId: number;
+  roleId?: number;
+  role?: string;
   status: string;
   created_at: string;
   updated_at: string;
@@ -243,7 +244,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={user || data.user} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

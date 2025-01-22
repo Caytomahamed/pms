@@ -3,6 +3,12 @@ export type ReplacementStatus = 'pending' | 'approved' | 'delivered';
 export type AssignmentStatus = 'pending' | 'in_progress' | 'completed';
 export type UserRole = 'admin' | 'farm' | 'warehouse' | 'salesman';
 
+export type ReplacementImage = {
+  type: string;
+  name: string;
+  size: number;
+};
+
 export type userStatus = 'Active' | 'inActive';
 
 // Users
@@ -36,6 +42,7 @@ export interface Replacement {
   orderId: number;
   created_at?: string;
   updated_at?: string;
+  image?: FileList | string;
   status: ReplacementStatus;
 }
 
