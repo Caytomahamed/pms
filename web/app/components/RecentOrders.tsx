@@ -9,7 +9,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { EggOrder } from '@/types';
 
-export function RecentOrders({ orders }) {
+export function RecentOrders({ orders }: { orders: EggOrder[] }) {
   return (
     <Table>
       <TableHeader>
@@ -23,8 +23,8 @@ export function RecentOrders({ orders }) {
       <TableBody>
         {orders.map((order: EggOrder) => (
           <TableRow key={order.id}>
-            <TableCell>{order.farmerId}</TableCell>
-            <TableCell>{order.quantity}</TableCell>
+            <TableCell>{order.username?.split(' ')[0]}</TableCell>
+            <TableCell>{order.quantity} Cartoon</TableCell>
             <TableCell>
               <Badge
                 variant={

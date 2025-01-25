@@ -10,7 +10,6 @@ import {
   Truck,
   Package,
   BarChartIcon as ChartBar,
-  Settings,
   BadgeDollarSign,
   Tractor,
   UserRound,
@@ -240,8 +239,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {user && user.roleId === 1 && <NavMain items={data.admin} />}
         {user && user.roleId === 2 && <NavMain items={data.farmer} />}
         {user && user.roleId === 3 && <NavMain items={data.saleman} />}
-        {/* <NavMain items={data.admin} /> */}
-        {/* <NavProjects projects={data.projects} /> */}
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={user || data.user} />

@@ -156,14 +156,15 @@ export default function ReplacementPage() {
       return (
         <Image
           src={`http://localhost:9000/uploads/${filename}`}
-          width={100}
-          height={100}
+          width={200}
+          height={200}
+          style={{ objectFit: 'cover' }}
           alt={`Replacement image for order ${filename}`}
         />
       );
     } else if (['mp4'].includes(fileType)) {
       return (
-        <video width="100" height="100" controls>
+        <video width="200" height="200" controls>
           <source
             src={`http://localhost:9000/uploads/${filename}`}
             type="video/mp4"
@@ -306,25 +307,6 @@ export default function ReplacementPage() {
             <CardDescription>Overview of all replacements</CardDescription>
           </CardHeader>
           <CardContent>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                {/* <Button variant="outline">Open</Button> */}
-                <MoreVertical className="h-5 w-5" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-14">
-                <DropdownMenuGroup>
-                  <DropdownMenuItem>
-                    <Edit />
-                    <span>Edit</span>
-                  </DropdownMenuItem>
-                  <DropdownMenuItem>
-                    <Trash color="red" />
-                    <span className="text-red-500">Delete</span>
-                  </DropdownMenuItem>
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-
             <div className="space-y-4">
               {replacements.length > 0 ? (
                 replacements.map((item) => (
@@ -349,33 +331,28 @@ export default function ReplacementPage() {
                         </div>
 
                         <div className="flex-col justify-end items-center gap-2 ">
-                          <div
-                            className={cn(
-                              'px-2.5 py-0.5 rounded-full text-xs font-semibold mb-10',
-                              item.status === 'pending' &&
-                                'bg-yellow-100 text-yellow-800',
-                              item.status === 'approved' &&
-                                'bg-red-100 text-red-800',
-                              item.status === 'delivered' &&
-                                'bg-blue-100 text-blue-800'
-                            )}
-                          >
-                            {item.status}
-                          </div>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => handleEdit(item)}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            onClick={() => handleDelete(Number(item.id))}
-                          >
-                            <Trash className="h-4 w-4" />
-                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              {/* <Button variant="outline">Open</Button> */}
+                              <MoreVertical className="h-5 w-5" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent className="w-14">
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(item)}
+                                >
+                                  <Edit />
+                                  <span>Edit</span>
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(Number(item.id))}
+                                >
+                                  <Trash color="red" />
+                                  <span className="text-red-500">Delete</span>
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
                       </div>
                     </CardContent>

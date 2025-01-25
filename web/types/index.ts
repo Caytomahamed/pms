@@ -32,6 +32,7 @@ export interface EggOrder {
   status: OrderStatus;
   farmerId: number;
   reason?: string;
+  username?: string;
 }
 
 export interface Replacement {

@@ -1,16 +1,11 @@
 const knex = require('../database/dbConfig');
 
-// Helper function for percentage change
-const calculatePercentageChange = (current, previous) => {
-  if (previous === 0) return 100; // Avoid division by zero
-  return (((current - previous) / previous) * 100).toFixed(1);
-};
-
 async function dashboard() {
   const totalFarms = await knex('users').where('roleId', 2).count('* as count');
   const totalOrders = await knex('orders').count('* as count');
   const orders = await knex('orders')
-    .select('*')
+    .join('users', 'users.id', 'orders.farmerId')
+    .select('orders.*', 'users.username')
     .orderBy('id', 'desc')
     .limit(5);
   const inventory = await knex('inventory');
@@ -47,106 +42,100 @@ async function dashboard() {
   };
 }
 
-// Farms Analytics
-async function findFarmsAnalytics() {
-  const totalFarms = await knex('users').where('roleId', 2).count('* as count');
-  const farmsLastMonth = 10; // Example previous data
+//// report
+const usersReport = async (req, res) => {
+  return await knex('users')
+    .leftJoin('roles', 'users.roleId', 'roles.id')
+    .groupBy('roles.name')
+    .select('roles.name as role', knex.raw('COUNT(*) as count'));
+};
 
-  const averageDailySupply = 1234; // Mocked current supply data
-  const dailySupplyLastMonth = 1175; // Example previous data
+const salesPipelineReport = async (req, res) => {
+  return await knex('sales')
+    .select(
+      'sales.*',
+      'salesman.username as salesman',
+      'customer.username as customer'
+    )
+    .leftJoin('users as salesman', 'sales.salesmanId', 'salesman.id')
+    .leftJoin('users as customer', 'sales.customerId', 'customer.id');
+};
 
-  const qualityScore = 4.8; // Mocked data
-  const qualityScoreLastMonth = 4.6;
+const orderStatusReport = async (req, res) => {
+  return await knex('orders')
+    .select('status', knex.raw('COUNT(*) as count'))
+    .groupBy('status');
+};
 
-  const onTimeDelivery = 94.2; // Mocked data
-  const onTimeDeliveryLastMonth = 93.1;
+const ReplacementStatusReport = async (req, res) => {
+  return await knex('replacements')
+    .select('status', knex.raw('COUNT(*) as count'))
+    .groupBy('status');
+};
 
-  return {
-    totalFarms: `${totalFarms[0].count} (+${
-      totalFarms[0].count - farmsLastMonth
-    } from last month)`,
-    averageDailySupply: `${averageDailySupply} dozens (+${calculatePercentageChange(
-      averageDailySupply,
-      dailySupplyLastMonth
-    )}% from last month)`,
-    qualityScore: `${qualityScore}/5 (+${(
-      qualityScore - qualityScoreLastMonth
-    ).toFixed(1)} from last month)`,
-    onTimeDelivery: `${onTimeDelivery}% (+${(
-      onTimeDelivery - onTimeDeliveryLastMonth
-    ).toFixed(1)}% from last month)`,
-  };
-}
+const stockLevelsReport = async (req, res) => {
+  return await knex('inventory')
+    .select(
+      'inventory.*',
+      knex.raw('(total - damaged) as available'),
+      'orders.deadline'
+    )
+    .leftJoin('orders', 'inventory.orderId', 'orders.id');
+};
+const topSalespeopleReport = async (req, res) => {
+  return await knex('sales')
+    .where('sales.status', 'completed')
+    .groupBy('salesmanId')
+    .orderBy('totalRevenue', 'desc')
+    .leftJoin('users', 'sales.salesmanId', 'users.id')
+    .select(
+      'users.*',
+      knex.raw(`
+          SUM(CAST(actualPrice AS DECIMAL) * CAST(actualQuantity AS DECIMAL)) as totalRevenue
+        `)
+    );
+};
 
-// Salesmen Analytics
-async function findSalesmenAnalytics() {
-  const totalSalesmen = await knex('users')
-    .where('roleId', 3)
-    .count('* as count');
-  const activeSalesmen = await knex('users')
-    .where('roleId', 3)
-    .andWhere('status', 'Active')
-    .count('* as count');
-  const completedOrders = await knex('orders')
-    .where('status', 'completed')
-    .count('* as count');
-  const assignedOrders = await knex('orders').count('* as count');
-  const avgDeliveries = (
-    completedOrders[0].count / totalSalesmen[0].count
-  ).toFixed(1);
+const topCustomerpeopleReport = async (req, res) => {
+  return await knex('sales')
+    .where('sales.status', 'completed')
+    .groupBy('customerId')
+    .orderBy('totalRevenue', 'desc')
+    .leftJoin('users', 'sales.salesmanId', 'users.id')
+    .select(
+      'users.*',
+      knex.raw(`
+          SUM(CAST(actualPrice AS DECIMAL) * CAST(actualQuantity AS DECIMAL)) as totalRevenue
+        `)
+    );
+};
 
-  return {
-    assignedOrders: assignedOrders[0].count,
-    completedOrders: completedOrders[0].count,
-    totalSalesmen: totalSalesmen[0].count,
-    activeSalesmen: activeSalesmen[0].count,
-    averageDeliveries: `${avgDeliveries}/month`,
-    rating: '4.7/5', // Mocked data
-  };
-}
-
-// Customers Analytics
-async function findCustomersAnalytics() {
-  const totalCustomers = await knex('users')
-    .where('roleId', 4)
-    .count('* as count');
-  const totalOrders = await knex('orders').count('* as count');
-  const avgOrderSize = (await knex('orders').avg('quantity as avg'))[0].avg;
-  const lastOrder = await knex('orders').orderBy('created_at', 'desc').first();
-  const totalSpent = await knex('sales').sum('actualPrice as total');
-
-  return {
-    totalOrders: totalOrders[0].count,
-    averageOrderSize: `${avgOrderSize.toFixed(1)} items`,
-    lastOrder: lastOrder
-      ? lastOrder.created_at.toISOString().split('T')[0]
-      : 'No Orders',
-    totalSpent: `$${totalSpent[0].total || 0}`,
-  };
-}
-
-// Financial Analytics
-async function findFinancialAnalytics() {
-  const totalRevenue = await knex('sales').sum('actualPrice as total');
-  const totalExpenses = 38000; // Mocked data
-  const netProfit = totalRevenue[0].total - totalExpenses;
-  const profitMargin = ((netProfit / totalRevenue[0].total) * 100).toFixed(1);
-
-  return {
-    totalRevenue: `$${totalRevenue[0].total || 0}`,
-    totalExpenses: `$${totalExpenses}`,
-    netProfit: `$${netProfit}`,
-    profitMargin: `${profitMargin}%`,
-  };
-}
+// const replacementReasonsReport = async (req, res) => {
+//   return await knex('replacements')
+//     .select('reason', knex.raw('COUNT(*) as count'))
+//     .groupBy('reason')
+//     .orderBy('count', 'desc');
+// };
 
 // Main function to fetch all analytics
 exports.find = async function () {
-  const farms = await findFarmsAnalytics();
-  const salesmen = await findSalesmenAnalytics();
-  const customers = await findCustomersAnalytics();
-  const financials = await findFinancialAnalytics();
   const dashboardData = await dashboard();
+  const usersReports = await usersReport();
+  const salesPipelineReports = await salesPipelineReport();
+  const orderStatusReports = await orderStatusReport();
+  const stockLevelsReports = await stockLevelsReport();
+  const topSalespeopleReports = await topSalespeopleReport();
+  const replacementReasonsReports = await ReplacementStatusReport();
+  const topCustomerpeopleReports = await topCustomerpeopleReport();
 
-  return dashboardData;
+  return {
+    usersReports,
+    salesPipelineReports,
+    orderStatusReports,
+    stockLevelsReports,
+    topSalespeopleReports,
+    replacementReasonsReports,
+    topCustomerpeopleReports
+    // dashboardData,
+  };
 };
