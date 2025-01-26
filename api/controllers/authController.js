@@ -109,8 +109,9 @@ exports.login = catchAsync(async (req, res, next) => {
 
   // Find user by role
   const user = await usersModel.findUserByUsername(username);
+  console.log('user', user);
 
-  if (user.roleId === 4) {
+  if (user && user.roleId === 4) {
     return next(new AppError('You are not allowed to login.', 401));
   }
 

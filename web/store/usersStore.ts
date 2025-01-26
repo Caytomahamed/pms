@@ -4,13 +4,24 @@ import { User, Sales, EggOrder } from '@/types';
 const BASE_URL = 'http://localhost:9000/api/v1/users';
 const BASE_URI = 'http://localhost:9000/api/v1/reports';
 
+export type groupStatus = {
+  status: string;
+  count: number;
+  fill: string;
+};
+
 interface Report {
   totalFarms: number;
+  totalCustomers: number;
+  totalSalesMan: number;
   currentStock: number;
   salesToday: number;
   totalOrders: number;
   salesOverview: Partial<Sales>[];
   orders: EggOrder[];
+  orderGroupStatus: groupStatus[];
+  salesGroupStatus: groupStatus[];
+  replacementGroupStatus: groupStatus[];
 }
 
 interface UsersStore {

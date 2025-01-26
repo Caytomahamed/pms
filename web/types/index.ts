@@ -22,6 +22,8 @@ export interface User {
   role: string;
   status?: userStatus;
   created_at?: string;
+  totalRevenue?: number;
+  count?: number;
 }
 
 export interface EggOrder {

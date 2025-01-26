@@ -31,22 +31,22 @@ exports.up = async function (knex) {
   await knex('users').insert([
     {
       username: 'admin1',
-      password: 'hashedpassword1',
+      password: '$2b$12$WohFnCdXmR6eO7Z3OfAXT.lPUvEoSZaBeYMEViAnMYht5IdWSgwDW',
       fullName: 'Admin One',
       roleId: 1,
       status: 'Active',
     },
     {
-      username: 'farmer1',
-      password: 'hashedpassword2',
+      username: 'Haleeya',
+      password: '$2b$12$WohFnCdXmR6eO7Z3OfAXT.lPUvEoSZaBeYMEViAnMYht5IdWSgwDW',
       fullName: 'Farmer One',
       roleId: 2,
       status: 'Active',
     },
     {
-      username: 'salesman1',
-      password: 'hashedpassword3',
-      fullName: 'Salesman One',
+      username: 'Cali',
+      password: '$2b$12$WohFnCdXmR6eO7Z3OfAXT.lPUvEoSZaBeYMEViAnMYht5IdWSgwDW',
+      fullName: 'Cali Maxamed',
       roleId: 3,
       status: 'Active',
     },

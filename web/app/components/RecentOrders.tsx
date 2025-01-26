@@ -11,7 +11,7 @@ import { EggOrder } from '@/types';
 
 export function RecentOrders({ orders }: { orders: EggOrder[] }) {
   return (
-    <Table>
+    <Table className="col-span-3">
       <TableHeader>
         <TableRow>
           <TableHead>FarmId</TableHead>
@@ -21,26 +21,27 @@ export function RecentOrders({ orders }: { orders: EggOrder[] }) {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {orders.map((order: EggOrder) => (
-          <TableRow key={order.id}>
-            <TableCell>{order.username?.split(' ')[0]}</TableCell>
-            <TableCell>{order.quantity} Cartoon</TableCell>
-            <TableCell>
-              <Badge
-                variant={
-                  order.status === 'accepted'
-                    ? 'secondary'
-                    : order.status === 'declined'
-                    ? 'destructive'
-                    : 'default'
-                }
-              >
-                {order.status}
-              </Badge>
-            </TableCell>
-            <TableCell>{order.deadline}</TableCell>
-          </TableRow>
-        ))}
+        {orders &&
+          orders.map((order: EggOrder) => (
+            <TableRow key={order.id}>
+              <TableCell>{order.username?.split(' ')[0]}</TableCell>
+              <TableCell>{order.quantity} Cartoon</TableCell>
+              <TableCell>
+                <Badge
+                  variant={
+                    order.status === 'accepted'
+                      ? 'secondary'
+                      : order.status === 'declined'
+                      ? 'destructive'
+                      : 'default'
+                  }
+                >
+                  {order.status}
+                </Badge>
+              </TableCell>
+              <TableCell>{order.deadline}</TableCell>
+            </TableRow>
+          ))}
       </TableBody>
     </Table>
   );

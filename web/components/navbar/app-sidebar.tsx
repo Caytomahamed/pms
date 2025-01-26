@@ -230,6 +230,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     }
   }, []);
 
+  console.log('user', user);
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
