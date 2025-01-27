@@ -36,8 +36,6 @@ interface User {
 export function NavUser({ user }: { user: User }) {
   const { isMobile } = useSidebar();
 
-  console.log('USER SIDEBAR', user);
-
   const logOut = useUsersStore((state) => state.logOut);
 
   return (

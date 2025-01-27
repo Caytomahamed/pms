@@ -74,9 +74,9 @@ export default function MyPieChart({
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
+                          className="fill-muted-foreground text-sm"
                         >
-                          Total
+                          Total {title.split(' ')[0].slice(0, 7)}
                         </tspan>
                       </text>
                     );

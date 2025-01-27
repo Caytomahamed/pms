@@ -12,13 +12,7 @@ import ProStockSales from './components/charts/ProStockSales';
 import TopUser from './components/TopUser';
 
 export default function Home() {
-  const {
-    reports,
-    fetchReport,
-  }: {
-    reports: { replacementGroupStatus: groupStatus[]; [key: string]: any };
-    fetchReport: () => void;
-  } = useUsersStore();
+  const { reports, fetchReport } = useUsersStore();
 
   useEffect(() => {
     fetchReport();
@@ -77,6 +71,20 @@ export default function Home() {
     'December',
   ];
 
+  // Active and InActive
+  const [InActiveUserTypeFarmer] =
+    (reports.inActiveUsers &&
+      reports?.inActiveUsers.filter((type) => type.roleId === 2)) ||
+    [];
+  const [InActiveUserTypeSalesMan] =
+    (reports.inActiveUsers &&
+      reports?.inActiveUsers.filter((type) => type.roleId === 3)) ||
+    [];
+  const [InActiveUserTypeCustomers] =
+    (reports.inActiveUsers &&
+      reports?.inActiveUsers.filter((type) => type.roleId === 4)) ||
+    [];
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -104,7 +112,11 @@ export default function Home() {
               {addCommas(reports.totalFarms) || addCommas(100)}
             </div>
             <p className="text-xs text-muted-foreground">
-              +20.1% from last month
+              {/* +20.1% from last month */}
+              <span className="text-green-500">
+                {InActiveUserTypeFarmer?.count || 0}{' '}
+              </span>
+              inActive farmers
             </p>
           </CardContent>
         </Card>
@@ -119,7 +131,12 @@ export default function Home() {
               {' '}
               {addCommas(reports.totalCustomers) || addCommas(1000)}
             </div>
-            <p className="text-xs text-muted-foreground">2 pending approvals</p>
+            <p className="text-xs text-muted-foreground">
+              <span className="text-green-500">
+                {InActiveUserTypeCustomers?.count || 0}{' '}
+              </span>
+              inActive Customers
+            </p>
           </CardContent>
         </Card>
         <Card>
@@ -136,7 +153,10 @@ export default function Home() {
               {addCommas(reports.totalSalesMan) || addCommas(1000)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Sales scheduled today
+              <span className="text-green-500">
+                {InActiveUserTypeSalesMan?.count || 0}{' '}
+              </span>
+              inActive SalesMan
             </p>
           </CardContent>
         </Card>
@@ -148,11 +168,13 @@ export default function Home() {
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
-          data={reports.orderGroupStatus}
+          data={reports.orderGroupStatus || []}
           dataKey="count"
           nameKey="status"
           chartConfig={chartConfig}
-          footerContent="Trending up by 3.8% this month"
+          footerContent={`Orders up by ${
+            reports.ordersChanges || '39%'
+          } this month`}
           footerSubtext="Data for the last  months"
         />
         <MyPieChart
@@ -160,11 +182,13 @@ export default function Home() {
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
-          data={reports.salesGroupStatus}
+          data={reports.salesGroupStatus || []}
           dataKey="count"
           nameKey="status"
           chartConfig={chartConfig}
-          footerContent="Trending up by 3.8% this month"
+          footerContent={`Sales up by ${
+            reports.salesChanges || '39%'
+          } this month`}
           footerSubtext="Data for the last  months"
         />
         <MyPieChart
@@ -172,11 +196,13 @@ export default function Home() {
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
-          data={reports.replacementGroupStatus}
+          data={reports.replacementGroupStatus || []}
           dataKey="count"
           nameKey="status"
           chartConfig={chartConfig}
-          footerContent="Trending up by 3.8% this month"
+          footerContent={`Replaces up by ${
+            reports.replacementChanges || '39%'
+          } this month`}
           footerSubtext="Data for the last months"
         />
       </div>
@@ -198,27 +224,16 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6 my-10 ">
-        <Card className="col-span-3">
-          <CardHeader>
-            <CardTitle>Top Customers</CardTitle>
-          </CardHeader>
-          <CardContent className="pl-2">
-            <TopUser users={reports.topCustomer} />
-          </CardContent>
-        </Card>
-        <Card className="col-span-3 ">
-          <CardHeader>
-            <CardTitle>Top SalesMan</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TopUser users={reports.topSalesman} />
-          </CardContent>
-        </Card>
-      </div>
 
       <div>
-        <ProStockSales />
+        <ProStockSales
+          data={reports.combinedSalesAndOrders || []}
+          description={` ${months[new Date().getMonth()]} - ${
+            months[new Date().getMonth() + 1]
+          }  ${new Date().getFullYear().toString()}`}
+          sales={reports.salesChanges || '39%'}
+          orders={reports.ordersChanges || '39%'}
+        />
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6 my-10 ">
@@ -227,7 +242,7 @@ export default function Home() {
             <CardTitle>Production</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <TopUser users={reports.topCustomer} />
+            <TopUser users={reports.topCustomers} />
           </CardContent>
         </Card>
         <Card className="col-span-3 ">
@@ -235,7 +250,7 @@ export default function Home() {
             <CardTitle>Production Piachart</CardTitle>
           </CardHeader>
           <CardContent>
-            <TopUser users={reports.topSalesman} />
+            <TopUser users={reports.topCustomers} />
           </CardContent>
         </Card>
       </div>

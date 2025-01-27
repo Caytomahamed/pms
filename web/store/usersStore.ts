@@ -10,6 +10,18 @@ export type groupStatus = {
   fill: string;
 };
 
+export type inActiveUsers = {
+  status: string;
+  roleId: number;
+  count: number;
+};
+
+export type combinedType = {
+  month: string;
+  sales: number;
+  orders: number;
+};
+
 interface Report {
   totalFarms: number;
   totalCustomers: number;
@@ -22,6 +34,13 @@ interface Report {
   orderGroupStatus: groupStatus[];
   salesGroupStatus: groupStatus[];
   replacementGroupStatus: groupStatus[];
+  inActiveUsers: inActiveUsers[];
+  topSalesMan: User[];
+  topCustomers: User[];
+  salesChanges: string;
+  ordersChanges: string;
+  replacementChanges: string;
+  combinedSalesAndOrders: combinedType[];
 }
 
 interface UsersStore {
@@ -53,6 +72,18 @@ export const useUsersStore = create<UsersStore>((set) => ({
     totalOrders: 0,
     salesOverview: [],
     orders: [],
+    orderGroupStatus: [],
+    salesGroupStatus: [],
+    replacementGroupStatus: [],
+    inActiveUsers: [],
+    totalCustomers: 0,
+    totalSalesMan: 0,
+    salesChanges: '',
+    ordersChanges: '',
+    replacementChanges: '',
+    topSalesMan: [],
+    topCustomers: [],
+    combinedSalesAndOrders: [],
   },
 
   loginUser: async (username, password) => {

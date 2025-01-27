@@ -101,19 +101,16 @@ async function dashboard() {
     .groupBy('users.username')
     .orderBy('totalRevenue', 'desc');
 
-  // const totalEggOrder = await knex('orders')
-  //   .select('farmerId')
-  //   .count('id as totalOrders') // Total number of orders
-  //   .raw('SUM(IF(status = "pending", quantity, 0)) AS pendingOrders')
-  //   .raw('SUM(IF(status = "accepted", quantity, 0)) AS acceptedOrders')
-  //   .raw('SUM(IF(status = "declined", quantity, 0)) AS declinedOrders')
-  //   .raw('SUM(IF(status = "completed", quantity, 0)) AS completedOrders')
-  //   .groupBy('farmerId');
-
   const currentMonth = knex.raw('DATE_FORMAT(NOW(), "%Y-%m-01")'); // First day of the current month
   const previousMonth = knex.raw(
     'DATE_FORMAT(DATE_SUB(NOW(), INTERVAL 1 MONTH), "%Y-%m-01")'
-  ); // First day of the previous month
+  );
+
+  const inActiveUsers = await knex('users')
+    .select('status', 'roleId')
+    .where('status', 'Inactive')
+    .count('* as count')
+    .groupBy('roleId');
 
   // Get total orders for current and previous months
   const results = await knex('orders').select(
@@ -130,126 +127,185 @@ async function dashboard() {
   const { currentMonthOrders, previousMonthOrders } = results[0];
 
   // Calculate percentage change
-  let percentageChange = 0;
-  if (previousMonthOrders > 0) {
-    percentageChange =
-      ((currentMonthOrders - previousMonthOrders) / previousMonthOrders) * 100;
-  } else {
-    percentageChange = currentMonthOrders > 0 ? 100 : 0; // If no previous orders, handle edge case
-  }
+  const calculatePercentageChange = (current, previous) => {
+    if (previous > 0) {
+      const percentageChange = ((current - previous) / previous) * 100;
+      return `${percentageChange.toFixed(1)}%`;
+    } else {
+      const percentageChange = current > 0 ? 100 : 0; // If no previous orders, handle edge case
+      return `${percentageChange.toFixed(1)}%`;
+    }
+  };
 
-  const changes = `${percentageChange.toFixed(2)}%`;
+  const ordersChanges = calculatePercentageChange(
+    currentMonthOrders,
+    previousMonthOrders
+  );
+
+  const salesIncreaseRate = await knex('sales').select(
+    knex.raw(
+      'SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS currentMonthSales',
+      [currentMonth]
+    ),
+    knex.raw(
+      'SUM(CASE WHEN created_at >= ? AND created_at < ? THEN 1 ELSE 0 END) AS previousMonthSales',
+      [previousMonth, currentMonth]
+    )
+  );
+
+  const { currentMonthSales, previousMonthSales } = salesIncreaseRate[0];
+
+  const salesChanges = calculatePercentageChange(
+    currentMonthSales,
+    previousMonthSales
+  );
+
+  const replacementIncreaseRate = await knex('replacements').select(
+    knex.raw(
+      'SUM(CASE WHEN created_at >= ? THEN 1 ELSE 0 END) AS currentMonthReplacement',
+      [currentMonth]
+    ),
+    knex.raw(
+      'SUM(CASE WHEN created_at >= ? AND created_at < ? THEN 1 ELSE 0 END) AS previousReplacement',
+      [previousMonth, currentMonth]
+    )
+  );
+
+  const { currentMonthReplacement, previousReplacement } =
+    replacementIncreaseRate[0];
+
+  const replacementChanges = calculatePercentageChange(
+    currentMonthReplacement,
+    previousReplacement
+  );
+
+  // get orders and sales for the days of the week
+  const days = [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ];
+
+  const salesByDay = await knex('sales')
+    .select('created_at')
+    .where(
+      'created_at',
+      '>=',
+      new Date(new Date().setDate(new Date().getDate() - 6)).toISOString()
+    )
+    .orderBy('created_at', 'asc');
+
+  const ordersByDay = await knex('orders')
+    .select('created_at')
+    .where(
+      'created_at',
+      '>=',
+      new Date(new Date().setDate(new Date().getDate() - 6)).toISOString()
+    )
+    .orderBy('created_at', 'asc');
+
+  // get the orders and sales by the months of the year
+  const months = [
+    'January',
+    'February',
+    'March',
+    'April',
+    'May',
+    'June',
+    'July',
+    'August',
+    'September',
+    'October',
+    'November',
+    'December',
+  ];
+
+  const salesByMonth = await knex('sales')
+    .select('created_at')
+    .count('* as SalesCount')
+    .where(
+      'created_at',
+      '>=',
+      new Date(new Date().setMonth(new Date().getMonth() - 11)).toISOString()
+    )
+    .orderBy('created_at', 'asc')
+    .groupBy('created_at');
+
+  // update the sales by month to include the month name
+  salesByMonth.forEach((item) => {
+    const date = new Date(item.created_at);
+    item.month = months[date.getMonth()];
+  });
+
+  const ordersByMonth = await knex('orders')
+    .select('created_at')
+    .count('* as OrderCount')
+    .where(
+      'created_at',
+      '>=',
+      new Date(new Date().setMonth(new Date().getMonth() - 11)).toISOString()
+    )
+    .orderBy('created_at', 'asc')
+    .groupBy('created_at');
+
+  // update the orders by month to include the month name
+  ordersByMonth.forEach((item) => {
+    const date = new Date(item.created_at);
+    item.month = months[date.getMonth()];
+  });
+
+  let combinedSalesAndOrders = [...salesByMonth, ...ordersByMonth];
+  // combination of sales and orders groubed by month
+  combinedSalesAndOrders = combinedSalesAndOrders.reduce((acc, item) => {
+    const existingItem = acc.find((i) => i.month === item.month);
+    if (existingItem) {
+      existingItem.sales += item.SalesCount || 0;
+      existingItem.orders += item.OrderCount || 0;
+    } else {
+      acc.push({
+        month: item.month,
+        sales: item.SalesCount || 0,
+        orders: item.OrderCount || 0,
+      });
+    }
+    return acc;
+  }, []);
+
+  console.log(combinedSalesAndOrders);
 
   return {
-    // totalFarms: totalFarms[0].count,
-    // totalSalesMan: totalSalesMan[0].count,
-    // totalCustomers: totalCustomers[0].count,
-    // currentStock,
-    // salesToday: sales.length,
-    // totalOrders: totalOrders[0].count,
-    // salesOverview,
-    // orders,
-    // orderGroupStatus,
-    // salesGroupStatus,
-    // replacementGroupStatus,
-    // topSalesman,
-    // topCustomer,
-    // totalEggOrder,
-    changes,
+    totalFarms: totalFarms[0].count,
+    totalSalesMan: totalSalesMan[0].count,
+    totalCustomers: totalCustomers[0].count,
+    currentStock,
+    salesToday: sales.length,
+    totalOrders: totalOrders[0].count,
+    salesOverview,
+    orders,
+    orderGroupStatus,
+    salesGroupStatus,
+    replacementGroupStatus,
+    topSalesman,
+    topCustomer,
+    inActiveUsers,
+    salesChanges,
+    ordersChanges,
+    replacementChanges,
+    ordersByDay,
+    salesByDay,
+    ordersByMonth,
+    salesByMonth,
+    combinedSalesAndOrders,
   };
 }
-
-//// report
-const usersReport = async (req, res) => {
-  return await knex('users')
-    .leftJoin('roles', 'users.roleId', 'roles.id')
-    .groupBy('roles.name')
-    .select('roles.name as role', knex.raw('COUNT(*) as count'));
-};
-
-const salesPipelineReport = async (req, res) => {
-  return await knex('sales')
-    .select(
-      'sales.*',
-      'salesman.username as salesman',
-      'customer.username as customer'
-    )
-    .leftJoin('users as salesman', 'sales.salesmanId', 'salesman.id')
-    .leftJoin('users as customer', 'sales.customerId', 'customer.id');
-};
-
-const orderStatusReport = async (req, res) => {
-  return await knex('orders')
-    .select('status', knex.raw('COUNT(*) as count'))
-    .groupBy('status');
-};
-
-const ReplacementStatusReport = async (req, res) => {
-  return await knex('replacements')
-    .select('status', knex.raw('COUNT(*) as count'))
-    .groupBy('status');
-};
-
-const stockLevelsReport = async (req, res) => {
-  return await knex('inventory')
-    .select(
-      'inventory.*',
-      knex.raw('(total - damaged) as available'),
-      'orders.deadline'
-    )
-    .leftJoin('orders', 'inventory.orderId', 'orders.id');
-};
-const topSalespeopleReport = async (req, res) => {
-  return await knex('sales')
-    .where('sales.status', 'completed')
-    .groupBy('salesmanId')
-    .orderBy('totalRevenue', 'desc')
-    .leftJoin('users', 'sales.salesmanId', 'users.id')
-    .select(
-      'users.*',
-      knex.raw(`
-          SUM(CAST(actualPrice AS DECIMAL) * CAST(actualQuantity AS DECIMAL)) as totalRevenue
-        `)
-    );
-};
-
-const topCustomerpeopleReport = async (req, res) => {
-  return await knex('sales')
-    .where('sales.status', 'completed')
-    .groupBy('customerId')
-    .orderBy('totalRevenue', 'desc')
-    .leftJoin('users', 'sales.salesmanId', 'users.id')
-    .select(
-      'users.*',
-      knex.raw(`
-          SUM(CAST(actualPrice AS DECIMAL) * CAST(actualQuantity AS DECIMAL)) as totalRevenue
-        `)
-    );
-};
-
-// const replacementReasonsReport = async (req, res) => {
-//   return await knex('replacements')
-//     .select('reason', knex.raw('COUNT(*) as count'))
-//     .groupBy('reason')
-//     .orderBy('count', 'desc');
-// };
 
 // Main function to fetch all analytics
 exports.find = async function () {
   const dashboardData = await dashboard();
-  const usersReports = await usersReport();
-  const salesPipelineReports = await salesPipelineReport();
-  const orderStatusReports = await orderStatusReport();
-  const stockLevelsReports = await stockLevelsReport();
-  const topSalespeopleReports = await topSalespeopleReport();
-  const replacementReasonsReports = await ReplacementStatusReport();
-  const topCustomerpeopleReports = await topCustomerpeopleReport();
 
   return dashboardData;
-  // salesPipelineReports,
-  // orderStatusReports,
-  // stockLevelsReports,
-  // topSalespeopleReports,
-  // replacementReasonsReports,
-  // topCustomerpeopleReports
 };

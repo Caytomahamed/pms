@@ -18,44 +18,40 @@ import {
   ChartTooltipContent,
 } from '@/components/ui/chart';
 
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80, table: 0 },
-  { month: 'February', desktop: 305, mobile: 200, table: 0 },
-  { month: 'March', desktop: 237, mobile: 120, table: 10000 },
-  { month: 'April', desktop: 73, mobile: 190, table: 0 },
-  { month: 'May', desktop: 209, mobile: 130, table: 100 },
-  { month: 'June', desktop: 214, mobile: 140, table: 1000 },
-];
+// const chartData = [
+//   { month: 'January', desktop: 186, mobile: 80 },
+//   { month: 'February', desktop: 305, mobile: 200 },
+//   { month: 'March', desktop: 237, mobile: 120 },
+//   { month: 'April', desktop: 73, mobile: 190 },
+//   { month: 'May', desktop: 209, mobile: 130 },
+//   { month: 'June', desktop: 214, mobile: 140 },
+// ];
 
 const chartConfig = {
-  desktop: {
-    label: 'Desktop',
+  sales: {
+    label: 'Sales',
     color: 'hsl(var(--chart-5))',
   },
-  mobile: {
-    label: 'Mobile',
+  orders: {
+    label: 'Orders',
     color: 'hsl(var(--chart-2))',
-  },
-  table: {
-    label: 'Mobile',
-    color: 'hsl(var(--chart-1))',
   },
 } satisfies ChartConfig;
 
-export default function ProStockSales() {
+export default function ProStockSales({ data, description, sales, orders }) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Area Chart - Gradient</CardTitle>
+        <CardTitle>Sales and Orders comparison </CardTitle>
         <CardDescription>
-          Showing total visitors for the last 6 months
+          Showing total visitors for the last months
         </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
           <AreaChart
             accessibilityLayer
-            data={chartData}
+            data={data}
             margin={{
               left: 12,
               right: 12,
@@ -71,65 +67,45 @@ export default function ProStockSales() {
             />
             <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
             <defs>
-              <linearGradient id="fillDesktop" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillOrders" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-desktop)"
+                  stopColor="var(--color-orders)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-desktop)"
+                  stopColor="var(--color-orders)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
-              <linearGradient id="fillMobile" x1="0" y1="0" x2="0" y2="1">
+              <linearGradient id="fillSales" x1="0" y1="0" x2="0" y2="1">
                 <stop
                   offset="5%"
-                  stopColor="var(--color-mobile)"
+                  stopColor="var(--color-sales)"
                   stopOpacity={0.8}
                 />
                 <stop
                   offset="95%"
-                  stopColor="var(--color-mobile)"
-                  stopOpacity={0.1}
-                />
-              </linearGradient>
-              <linearGradient id="fillTable" x1="0" y1="0" x2="0" y2="1">
-                <stop
-                  offset="5%"
-                  stopColor="var(--color-table)"
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset="95%"
-                  stopColor="var(--color-table)"
+                  stopColor="var(--color-sales)"
                   stopOpacity={0.1}
                 />
               </linearGradient>
             </defs>
             <Area
-              dataKey="mobile"
+              dataKey="orders"
               type="natural"
-              fill="url(#fillMobile)"
+              fill="url(#fillOrders)"
               fillOpacity={0.4}
-              stroke="var(--color-mobile)"
+              stroke="var(--color-orders)"
               stackId="a"
             />
             <Area
-              dataKey="desktop"
+              dataKey="sales"
               type="natural"
-              fill="url(#fillDesktop)"
+              fill="url(#fillSales)"
               fillOpacity={0.4}
-              stroke="var(--color-desktop)"
-              stackId="a"
-            />
-            <Area
-              dataKey="table"
-              type="natural"
-              fill="url(#fillTable)"
-              fillOpacity={0.4}
-              stroke="var(--color-table)"
+              stroke="var(--color-sales)"
               stackId="a"
             />
           </AreaChart>
@@ -139,10 +115,11 @@ export default function ProStockSales() {
         <div className="flex w-full items-start gap-2 text-sm">
           <div className="grid gap-2">
             <div className="flex items-center gap-2 font-medium leading-none">
-              Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+              Sales up by {sales} and Orders up by {orders} this month{' '}
+              <TrendingUp className="h-4 w-4" />
             </div>
             <div className="flex items-center gap-2 leading-none text-muted-foreground">
-              January - June 2024
+              {description}
             </div>
           </div>
         </div>
