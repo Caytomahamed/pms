@@ -309,3 +309,75 @@ exports.find = async function () {
 
   return dashboardData;
 };
+
+// const knex = require('./your-knex-config'); // Import your Knex instance
+
+async function generateReport({
+  tableName,
+  reportType,
+  inputDate,
+  inputMonth,
+  inputYear,
+}) {
+  // Validate required parameters
+  if (!tableName || !reportType) {
+    throw new Error('Missing required parameters: tableName and reportType');
+  }
+
+  const validTables = [
+    'users',
+    'sales',
+    'roles',
+    'replacements',
+    'orders',
+    'inventory',
+  ];
+  if (!validTables.includes(tableName)) {
+    throw new Error('Invalid table name');
+  }
+
+  let query = knex(tableName);
+
+  switch (reportType.toLowerCase()) {
+    case 'daily':
+      if (!inputDate) throw new Error('inputDate required for daily reports');
+      query.whereRaw('DATE(created_at) = ?', [inputDate]);
+      break;
+
+    case 'weekly':
+      if (!inputDate) throw new Error('inputDate required for weekly reports');
+      query.whereRaw('YEARWEEK(created_at, 1) = YEARWEEK(?, 1)', [inputDate]);
+      break;
+
+    case 'monthly':
+      if (!inputMonth || !inputYear)
+        throw new Error(
+          'inputMonth and inputYear required for monthly reports'
+        );
+      query
+        .whereRaw('MONTH(created_at) = ?', [inputMonth])
+        .whereRaw('YEAR(created_at) = ?', [inputYear]);
+      break;
+
+    case 'yearly':
+      if (!inputYear) throw new Error('inputYear required for yearly reports');
+      query.whereRaw('YEAR(created_at) = ?', [inputYear]);
+      break;
+
+    default:
+      throw new Error(
+        'Invalid report type. Use: daily, weekly, monthly, yearly'
+      );
+  }
+
+  return query.select('*');
+}
+
+// Usage Example
+// generateReport({
+//   tableName: 'sales',
+//   reportType: 'weekly',
+//   inputDate: '2024-03-01',
+// })
+//   .then((results) => console.log('Weekly Sales Report:', results))
+//   .catch((err) => console.error('Report Error:', err));

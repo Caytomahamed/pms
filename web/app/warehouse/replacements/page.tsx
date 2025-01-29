@@ -30,7 +30,7 @@ import {
   PopoverTrigger,
 } from '@radix-ui/react-popover';
 import { format } from 'date-fns';
-import { cn } from '@/utlis';
+
 import Image from 'next/image';
 
 import {
@@ -183,6 +183,7 @@ export default function ReplacementPage() {
           onClose={() => setToast(null)}
         />
       )}
+      <h1 className="text-2xl font-bold my-10">Replacement Management</h1>
       <Button onClick={() => setDialogOpen(true)} className="mb-5">
         Add Replacement
       </Button>

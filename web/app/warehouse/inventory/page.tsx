@@ -23,6 +23,7 @@ import {
 } from '@/components/ui/card';
 import { Edit, Trash } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
+import { Inventory } from '@/types';
 
 export default function WarehousePage() {
   const {
@@ -83,19 +84,21 @@ export default function WarehousePage() {
       });
       setEditInventoryId(null);
       setDialogOpen(false);
-    } catch (error) {
+    } catch {
       setToast({ message: 'Error saving inventory', type: 'error' });
     }
   };
 
-  const handleEdit = (item: any) => {
+  const handleEdit = (item: Inventory) => {
     setInventoryForm({
       orderId: item.orderId.toString(),
       totalDelivered: item.total.toString(),
       damagedCount: item.damaged.toString(),
       notes: item.note || '',
     });
-    setEditInventoryId(item.id);
+    if (item.id !== undefined) {
+      setEditInventoryId(item.id);
+    }
     setDialogOpen(true);
   };
 
@@ -117,6 +120,7 @@ export default function WarehousePage() {
           onClose={() => setToast(null)}
         />
       )}
+      <h1 className="text-2xl font-bold my-10">Inventory Management</h1>
       <Button onClick={() => setDialogOpen(true)} className="mb-5">
         Add Inventory
       </Button>
@@ -206,7 +210,7 @@ export default function WarehousePage() {
                           </p>
                           <p className="text-sm text-muted-foreground">
                             CreateAt:{' '}
-                            {new Date(item.created_at).toLocaleDateString()}
+                            {item.created_at ? new Date(item.created_at).toLocaleDateString() : 'N/A'}
                           </p>
                         </div>
 

@@ -160,6 +160,8 @@ export default function OrdersPage() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <h1 className="text-2xl font-bold mt-10 mb-5">Orders Management</h1>
       <div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
@@ -332,7 +334,7 @@ export default function OrdersPage() {
                       <div>
                         <p className="font-semibold">Order #{order.id}</p>
                         <p className="text-sm text-muted-foreground">
-                          Farmer: {order.farmerId}
+                          Farm: {order.fullName}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Quantity: {order.quantity}

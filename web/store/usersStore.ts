@@ -244,5 +244,6 @@ export const useUsersStore = create<UsersStore>((set) => ({
     localStorage.removeItem('token');
     localStorage.removeItem('isLogin');
     window.location.reload(); // Refreshes the page
+    window.location.href = '/';
   },
 }));

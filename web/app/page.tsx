@@ -5,23 +5,30 @@ import { Package, ShoppingCart, Users, Egg } from 'lucide-react';
 import { SalesChart } from './components/charts/SalesChart';
 import { RecentOrders } from './components/RecentOrders';
 
-import { groupStatus, useUsersStore } from '@/store/usersStore';
+import { useUsersStore } from '@/store/usersStore';
+import { ProductionStatus, useProductionStore } from '@/store/productionStore';
 import { useEffect } from 'react';
 import MyPieChart from './components/charts/MyPieChart';
 import ProStockSales from './components/charts/ProStockSales';
-import TopUser from './components/TopUser';
+
+import LastestProduction from './components/LastestProductions';
+
+export const addCommas = (num: number) => {
+  if (!num) return '0';
+  return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+};
 
 export default function Home() {
   const { reports, fetchReport } = useUsersStore();
 
+  const { fetchStatus, statusProduction, fetchLastest, latestProductions } =
+    useProductionStore();
+
   useEffect(() => {
     fetchReport();
+    fetchStatus();
+    fetchLastest();
   }, []);
-
-  const addCommas = (num: number) => {
-    if (!num) return '0';
-    return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-  };
 
   const noSales = [
     {
@@ -239,20 +246,26 @@ export default function Home() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-6 my-10 ">
         <Card className="col-span-3">
           <CardHeader>
-            <CardTitle>Production</CardTitle>
+            <CardTitle>Lastest Production</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <TopUser users={reports.topCustomers} />
+            <LastestProduction productions={latestProductions} />
           </CardContent>
         </Card>
-        <Card className="col-span-3 ">
-          <CardHeader>
-            <CardTitle>Production Piachart</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TopUser users={reports.topCustomers} />
-          </CardContent>
-        </Card>
+        <div className="col-span-3 ">
+          <MyPieChart
+            title="Production status"
+            description={` ${months[new Date().getMonth()]} - ${
+              months[new Date().getMonth() + 1]
+            }  ${new Date().getFullYear().toString()}`}
+            data={statusProduction as ProductionStatus[]}
+            dataKey="total"
+            nameKey="username"
+            chartConfig={chartConfig}
+            footerContent={`Prodution of the farms `}
+            footerSubtext=""
+          />
+        </div>
       </div>
     </>
   );

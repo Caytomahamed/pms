@@ -12,6 +12,7 @@ const inventoryRouter = require('./routes/inventoryRoutes');
 const replacementRouter = require('./routes/replacementRoutes');
 const salesRouter = require('./routes/salesRoutes');
 const reportRouter = require('./routes/reportRouter.js');
+const productionRouter = require('./routes/productionRoutes.js');
 
 const app = express();
 
@@ -27,12 +28,12 @@ app.use('/uploads', express.static('uploads'));
 app.use(express.json());
 
 // Log requests
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  console.log('Body:', req.body);
-  next();
-});
+// app.use((req, res, next) => {
+//   console.log(`${req.method} ${req.url}`);
+//   console.log('Headers:', req.headers);
+//   console.log('Body:', req.body);
+//   next();
+// });
 
 // Routes
 app.use('/api/v1/users', userRouter);
@@ -41,6 +42,7 @@ app.use('/api/v1/inventory', inventoryRouter);
 app.use('/api/v1/replacements', replacementRouter);
 app.use('/api/v1/sales', salesRouter);
 app.use('/api/v1/reports', reportRouter);
+app.use('/api/v1/productions', productionRouter);
 
 // automalically handle with deadline orders to completed
 const orderController = require('./controllers/orderController');

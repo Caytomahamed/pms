@@ -77,6 +77,20 @@ exports.up = async function (knex) {
       orderId: 5,
     },
   ]);
+
+  await knex.schema.createTable('productions', (table) => {
+    table.increments('id').primary(); // Primary Key
+    table.integer('cartoon').defaultTo(0); // Cartoon
+    table.integer('tray').defaultTo(0); // tray
+    table.integer('piece').defaultTo(0); // piece
+    table
+      .integer('farmerId')
+      .unsigned()
+      .references('id')
+      .inTable('users')
+      .onDelete('CASCADE');
+    table.timestamps(true, true);
+  });
 };
 
 /**
@@ -85,4 +99,5 @@ exports.up = async function (knex) {
  */
 exports.down = async function (knex) {
   await knex.schema.dropTable('inventory');
+  await knex.schema.dropTable('productions');
 };

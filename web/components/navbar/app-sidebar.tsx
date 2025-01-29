@@ -17,7 +17,11 @@ import {
   Replace,
   DollarSign,
   LayoutDashboard,
+  Factory,
+  Loader2,
 } from 'lucide-react';
+
+import { useRouter } from 'next/navigation';
 
 import { NavMain } from './nav-main';
 // import { NavProjects } from './nav-projects';
@@ -101,27 +105,7 @@ const data = {
       icon: Egg,
       color: 'text-sky-500',
     },
-    // {
-    //   title: 'Farmer',
-    //   icon: Truck,
-    //   url: '#',
-    //   color: 'text-green-500',
-    //   isActive: true,
-    //   items: [
-    //     {
-    //       title: 'Orders',
-    //       url: '/farmer/orders',
-    //       icon: Egg,
-    //       color: 'text-sky-500',
-    //     },
-    //     {
-    //       title: 'Replacements',
-    //       url: '/farmer/replacements',
-    //       icon: Replace,
-    //       color: 'text-red-600',
-    //     },
-    //   ],
-    // },
+
     {
       title: 'Warehouse',
       icon: Warehouse,
@@ -134,6 +118,12 @@ const data = {
           url: '/warehouse/inventory',
           icon: Package,
           color: 'text-orange-700',
+        },
+        {
+          title: 'Production',
+          url: '/warehouse/production',
+          icon: Factory,
+          color: 'text-blue-700',
         },
         {
           title: 'Replacements',
@@ -149,18 +139,6 @@ const data = {
       icon: ChartBar,
       color: 'text-pink-500',
     },
-    // {
-    //   title: 'SalesMan',
-    //   url: '/salesman',
-    //   icon: DollarSign,
-    //   color: 'text-cyan-500',
-    // },
-    // {
-    //   title: 'Reports',
-    //   icon: Settings,
-    //   url: '/reports',
-    //   color: 'text-violet-500',
-    // },
   ],
   farmer: [
     {
@@ -182,14 +160,14 @@ const data = {
           icon: Replace,
           color: 'text-red-600',
         },
+        {
+          title: 'Production',
+          url: '/farmer/production',
+          icon: Factory,
+          color: 'text-blue-700',
+        },
       ],
     },
-    // {
-    //   title: 'Reports',
-    //   icon: Settings,
-    //   url: '/reports',
-    //   color: 'text-violet-500',
-    // },
   ],
   saleman: [
     {
@@ -198,12 +176,6 @@ const data = {
       icon: DollarSign,
       color: 'text-cyan-500',
     },
-    // {
-    //   title: 'Reports',
-    //   icon: Settings,
-    //   url: '/reports',
-    //   color: 'text-violet-500',
-    // },
   ],
 };
 
@@ -222,15 +194,45 @@ interface User {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const [user, setUser] = React.useState<User | null>(null);
+  const [isLoading, setIsLoading] = React.useState(true);
+
+  const router = useRouter();
 
   React.useEffect(() => {
-    const user = localStorage.getItem('user');
-    if (user) {
-      setUser(JSON.parse(user));
-    }
-  }, []);
+    const checkUser = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const parsedUser = JSON.parse(userData);
+        setUser(parsedUser);
 
-  console.log('user', user);
+        // Add 1-second delay before redirect
+        setTimeout(() => {
+          if (parsedUser.roleId === 2 && window.location.pathname === '/') {
+            router.push('/farmer/orders');
+          }
+          if (parsedUser.roleId === 3 && window.location.pathname === '/') {
+            router.push('/salesman');
+          }
+          setIsLoading(false); // Clear loading state
+        }, 1000);
+      } else {
+        setIsLoading(false);
+      }
+    };
+
+    if (typeof window !== 'undefined') {
+      checkUser();
+    }
+  }, [router]);
+
+  // Show loading state while checking
+  if (isLoading) {
+    return (
+      <div className="flex h-screen w-full items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <Sidebar collapsible="icon" {...props}>

@@ -5,6 +5,7 @@ import { useUsersStore } from './usersStore';
 import { useInventoryStore } from './InvertoryStore';
 import { useReplacementStore } from './replacementStore';
 import { useSalesStore } from './salesStore';
+import { useProductionStore } from './productionStore';
 
 export const useStore = create(
   persist(
@@ -14,6 +15,7 @@ export const useStore = create(
       inventoryStore: useInventoryStore,
       replacementStore: useReplacementStore,
       salesStore: useSalesStore,
+      productionStore: useProductionStore,
     }),
     {
       name: 'poultry-management-storage',

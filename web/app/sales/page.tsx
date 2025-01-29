@@ -176,6 +176,8 @@ export default function OrdersPage() {
           onClose={() => setToast(null)}
         />
       )}
+
+      <h1 className="text-2xl font-bold mt-10 mb-5">Sales Management</h1>
       <div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>

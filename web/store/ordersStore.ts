@@ -36,7 +36,10 @@ export const useOrdersStore = create<OrdersStore>((set) => ({
   fetchData: async () => {
     try {
       const response = await fetch(BASE_URL);
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      if (!response.ok) {
+        console.log('reponse', response.json());
+        throw new Error('Failed to fetch orders');
+      }
       const data: EggOrder[] = await response.json().then((data) => data.data);
       set({ orders: data });
     } catch (error) {

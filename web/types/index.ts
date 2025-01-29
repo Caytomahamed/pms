@@ -24,6 +24,7 @@ export interface User {
   created_at?: string;
   totalRevenue?: number;
   count?: number;
+  roleId?: number;
 }
 
 export interface EggOrder {
@@ -35,6 +36,21 @@ export interface EggOrder {
   farmerId: number;
   reason?: string;
   username?: string;
+  created_at?: string;
+  updated_at?: string;
+  fullName?: string;
+}
+
+export interface Productions {
+  id?: number;
+  cartoon: number;
+  tray: number;
+  piece: number;
+  farmerId: number;
+  created_at?: string;
+  updated_at?: string;
+  username?: string;
+  total?: number;
 }
 
 export interface Replacement {

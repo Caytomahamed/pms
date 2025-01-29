@@ -4,7 +4,9 @@ const db = require('../database/dbConfig');
 const tableName = 'orders';
 
 exports.find = async (filters = {}) => {
-  return await models.findAll(tableName, filters);
+  return await db('orders')
+    .join('users', 'users.id', 'orders.farmerId')
+    .select('orders.*', 'users.fullName');
 };
 
 exports.create = async (data) => {
