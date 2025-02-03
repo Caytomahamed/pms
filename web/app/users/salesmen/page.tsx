@@ -236,7 +236,7 @@ export default function SalesmanPage() {
               <TableHead>FullName</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Assign Area</TableHead>
-              <TableHead>Last Order</TableHead>
+              {/* <TableHead>Last Order</TableHead> */}
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -249,11 +249,11 @@ export default function SalesmanPage() {
                 <TableCell>{salesman.fullName}</TableCell>
                 <TableCell>{salesman.phone}</TableCell>
                 <TableCell>{salesman.address}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {salesman.created_at
                     ? new Date(salesman.created_at).toLocaleDateString()
                     : 'N/A'}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <Badge
                     variant={

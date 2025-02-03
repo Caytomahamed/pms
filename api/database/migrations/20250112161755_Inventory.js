@@ -23,7 +23,10 @@ exports.up = async function (knex) {
 
   await knex.schema.createTable('replacements', (table) => {
     table.increments('id').primary(); // Primary Key
-    table.integer('quantity').notNullable(); // Quantity
+    table.integer('quantity').defaultTo(0); // cartoon
+    // table.integer('cartoon').defaultTo(0); // cartoon
+    // table.integer('tray').defaultTo(0); // trays
+    // table.integer('piece').defaultTo(0); // piece
     table.string('deadline').notNullable(); // Deadline
     table.text('reason'); // Description
     table.string('image');
@@ -63,7 +66,7 @@ exports.up = async function (knex) {
       orderId: 3,
     },
     {
-      quantity: 20,
+      quality: 20,
       deadline: '2025-02-02',
       reason: 'Customer request',
       status: 'pending',

@@ -236,7 +236,7 @@ export default function FarmerPage() {
               <TableHead>FullName</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Location</TableHead>
-              <TableHead>Last Order</TableHead>
+              {/* <TableHead>Last Order</TableHead> */}
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -249,11 +249,11 @@ export default function FarmerPage() {
                 <TableCell>{farmer.fullName}</TableCell>
                 <TableCell>{farmer.phone}</TableCell>
                 <TableCell>{farmer.address}</TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {farmer.created_at
                     ? new Date(farmer.created_at).toLocaleDateString()
                     : 'N/A'}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <Badge
                     variant={

@@ -6,8 +6,8 @@ import { SalesChart } from './components/charts/SalesChart';
 import { RecentOrders } from './components/RecentOrders';
 
 import { useUsersStore } from '@/store/usersStore';
-import { ProductionStatus, useProductionStore } from '@/store/productionStore';
-import { useEffect } from 'react';
+import { useProductionStore } from '@/store/productionStore';
+import { useEffect, useState } from 'react';
 import MyPieChart from './components/charts/MyPieChart';
 import ProStockSales from './components/charts/ProStockSales';
 
@@ -17,6 +17,17 @@ export const addCommas = (num: number) => {
   if (!num) return '0';
   return num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
 };
+
+import { useReportStore } from '@/store/useReports';
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import TopUser from './components/TopUser';
 
 export default function Home() {
   const { reports, fetchReport } = useUsersStore();
@@ -91,6 +102,110 @@ export default function Home() {
     (reports.inActiveUsers &&
       reports?.inActiveUsers.filter((type) => type.roleId === 4)) ||
     [];
+
+  const [selectedMonthOrders, setSelectedMonthOrders] = useState(
+    new Date().getMonth()
+  );
+  const [selectedYearOrders, setSelectedYearOrders] = useState(
+    new Date().getFullYear()
+  );
+
+  const [selectedMonthSales, setSelectedMonthSales] = useState(
+    new Date().getMonth()
+  );
+  const [selectedYearSales, setSelectedYearSales] = useState(
+    new Date().getFullYear()
+  );
+
+  const [selectedMonthReplacement, setSelectedMonthReplacement] = useState(
+    new Date().getMonth()
+  );
+  const [selectedYearReplacement, setSelectedYearReplacement] = useState(
+    new Date().getFullYear()
+  );
+
+  const [selectedMonthProduction, setSelectedMonthProduction] = useState(
+    new Date().getMonth()
+  );
+  const [selectedYearProduction, setSelectedYearProduction] = useState(
+    new Date().getFullYear()
+  );
+
+  const [selectedYearComparison, setSelectedYearComparison] = useState(
+    new Date().getFullYear()
+  );
+
+  const [selectedYearSalesOverview, setSelectedYearSalesOverview] = useState(
+    new Date().getFullYear()
+  );
+
+  /// fetch status
+  const {
+    fetchOrdersStatus,
+    fetchReplacementStatus,
+    fetchSalesStatus,
+    sales,
+    orders,
+    replacements,
+    fetchProductionStatus,
+    production,
+    fetchComperison,
+    comperison,
+    salesOverview,
+    fetchSaleOveriew,
+    fetchLatesOrder,
+    latestOrders,
+    topCustomers,
+    topSalesMan,
+    latestProdutions,
+    fetchTopCustomers,
+    fetchTopSalesMan,
+    fetchLatestProdutions,
+  } = useReportStore();
+
+  useEffect(() => {
+    fetchOrdersStatus(selectedMonthOrders + 1, selectedYearOrders, 'orders');
+    fetchReplacementStatus(
+      selectedMonthReplacement + 1,
+      selectedYearReplacement,
+      'replacements'
+    );
+    fetchSalesStatus(selectedMonthSales + 1, selectedYearSales, 'sales');
+    fetchProductionStatus(selectedMonthProduction + 1, selectedYearProduction);
+    fetchComperison(selectedYearComparison);
+    fetchSaleOveriew(selectedYearSalesOverview);
+    fetchLatesOrder();
+    fetchTopCustomers();
+    fetchTopSalesMan();
+    fetchLatestProdutions();
+  }, [
+    fetchOrdersStatus,
+    fetchReplacementStatus,
+    fetchSalesStatus,
+    selectedMonthOrders,
+    selectedMonthReplacement,
+    selectedMonthSales,
+    selectedYearOrders,
+    selectedYearReplacement,
+    selectedYearSales,
+    fetchProductionStatus,
+    selectedMonthProduction,
+    selectedYearProduction,
+    fetchComperison,
+    selectedYearComparison,
+    fetchSaleOveriew,
+    selectedYearSalesOverview,
+    fetchLatesOrder,
+    fetchTopCustomers,
+    fetchTopSalesMan,
+    fetchLatestProdutions,
+  ]);
+
+  const currentYear = new Date().getFullYear();
+  const years = Array.from(
+    { length: Math.abs(currentYear - 2023) + 1 },
+    (_, i) => (2023 > currentYear ? 2023 - i : 2023 + i)
+  );
 
   return (
     <>
@@ -175,51 +290,97 @@ export default function Home() {
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
-          data={reports.orderGroupStatus || []}
+          data={orders.data || []}
           dataKey="count"
           nameKey="status"
           chartConfig={chartConfig}
-          footerContent={`Orders up by ${
-            reports.ordersChanges || '39%'
-          } this month`}
-          footerSubtext="Data for the last  months"
+          footerContent={''}
+          rate={orders.rate}
+          selectedMonth={selectedMonthOrders}
+          setSelectedMonth={setSelectedMonthOrders}
+          selectedYear={selectedYearOrders}
+          setSelectedYear={setSelectedYearOrders}
         />
         <MyPieChart
           title="Sales Status"
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
-          data={reports.salesGroupStatus || []}
+          data={sales.data || []}
           dataKey="count"
           nameKey="status"
           chartConfig={chartConfig}
-          footerContent={`Sales up by ${
-            reports.salesChanges || '39%'
-          } this month`}
+          rate={sales.rate}
           footerSubtext="Data for the last  months"
+          selectedMonth={selectedMonthSales}
+          setSelectedMonth={setSelectedMonthSales}
+          selectedYear={selectedYearSales}
+          setSelectedYear={setSelectedYearSales}
         />
         <MyPieChart
           title="Replacements"
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
-          data={reports.replacementGroupStatus || []}
+          data={replacements.data || []}
+          rate={replacements.rate}
           dataKey="count"
           nameKey="status"
           chartConfig={chartConfig}
-          footerContent={`Replaces up by ${
-            reports.replacementChanges || '39%'
-          } this month`}
           footerSubtext="Data for the last months"
+          selectedMonth={selectedMonthReplacement}
+          setSelectedMonth={setSelectedMonthReplacement}
+          selectedYear={selectedYearReplacement}
+          setSelectedYear={setSelectedYearReplacement}
         />
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-8 my-10 ">
         <Card className="col-span-4">
           <CardHeader>
-            <CardTitle>Sales Overview</CardTitle>
+            <CardTitle>Top Customers</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <SalesChart sales={reports.salesOverview || noSales} />
+            <TopUser users={topCustomers || []} />
+          </CardContent>
+        </Card>
+        <Card className="col-span-4 ">
+          <CardHeader>
+            <CardTitle>Top SalesMan</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <TopUser users={topSalesMan || []} />
+          </CardContent>
+        </Card>
+      </div>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-8 my-10 ">
+        <Card className="col-span-4">
+          <CardHeader>
+            {/* Dropdowns for Month and Year */}
+            <div className="flex gap-4  justify-between items-center">
+              <CardTitle>Sales Overview</CardTitle>
+              <div className="flex gap-4  w-32 justify-end">
+                <Select
+                  onValueChange={(value) =>
+                    setSelectedYearSalesOverview(parseInt(value, 10))
+                  }
+                  value={selectedYearSalesOverview.toString()}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select Year" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {years.map((year) => (
+                      <SelectItem key={year} value={year.toString()}>
+                        {year}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <SalesChart sales={salesOverview || noSales} />
           </CardContent>
         </Card>
         <Card className="col-span-4 ">
@@ -227,19 +388,21 @@ export default function Home() {
             <CardTitle>Recent Orders</CardTitle>
           </CardHeader>
           <CardContent>
-            <RecentOrders orders={reports.orders} />
+            <RecentOrders orders={latestOrders || []} />
           </CardContent>
         </Card>
       </div>
 
       <div>
         <ProStockSales
-          data={reports.combinedSalesAndOrders || []}
+          data={comperison || []}
           description={` ${months[new Date().getMonth()]} - ${
             months[new Date().getMonth() + 1]
           }  ${new Date().getFullYear().toString()}`}
           sales={reports.salesChanges || '39%'}
           orders={reports.ordersChanges || '39%'}
+          selectedYear={selectedYearComparison}
+          setSelectedYear={setSelectedYearComparison}
         />
       </div>
 
@@ -249,7 +412,7 @@ export default function Home() {
             <CardTitle>Lastest Production</CardTitle>
           </CardHeader>
           <CardContent className="pl-2">
-            <LastestProduction productions={latestProductions} />
+            <LastestProduction productions={latestProdutions || []} />
           </CardContent>
         </Card>
         <div className="col-span-3 ">
@@ -258,12 +421,16 @@ export default function Home() {
             description={` ${months[new Date().getMonth()]} - ${
               months[new Date().getMonth() + 1]
             }  ${new Date().getFullYear().toString()}`}
-            data={statusProduction as ProductionStatus[]}
-            dataKey="total"
-            nameKey="username"
+            data={production.data || []}
+            rate={production.rate}
+            dataKey="count"
+            nameKey="status"
             chartConfig={chartConfig}
-            footerContent={`Prodution of the farms `}
             footerSubtext=""
+            selectedMonth={selectedMonthProduction}
+            setSelectedMonth={setSelectedMonthProduction}
+            selectedYear={selectedYearProduction}
+            setSelectedYear={setSelectedYearProduction}
           />
         </div>
       </div>

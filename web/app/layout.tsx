@@ -9,7 +9,7 @@ import { SidebarProvider, SidebarTrigger } from '@/components/ui/sidebar';
 import { AppSidebar } from '../components/navbar/app-sidebar';
 import { useEffect, useState } from 'react';
 import Login from './login/page';
-import { useSearchParams } from 'next/navigation';
+// import { useSearchParams } from 'next/navigation';
 
 export default function RootLayout({
   children,
@@ -22,10 +22,6 @@ export default function RootLayout({
     const userLoggedIn = Boolean(localStorage.getItem('isLogin')); // Example: Check from localStorage or API
     setIsLoggedIn(userLoggedIn);
   }, []);
-
-  const paramers = useSearchParams();
-
-  // console.log('searhc', paramers);
 
   return (
     <html lang="en">

@@ -8,6 +8,7 @@ import {
 } from '@/components/ui/table';
 
 import { User } from '@/types';
+import { addCommas } from '../page';
 
 export default function TopUser({ users }: { users: User[] }) {
   return (
@@ -27,7 +28,7 @@ export default function TopUser({ users }: { users: User[] }) {
               <TableCell>{user.fullName}</TableCell>
               <TableCell>{user.phone} </TableCell>
               <TableCell>{user.count}</TableCell>
-              <TableCell>{user.totalRevenue}</TableCell>
+              <TableCell>{addCommas(Number(user.totalRevenue))}</TableCell>
             </TableRow>
           ))}
       </TableBody>

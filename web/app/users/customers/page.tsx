@@ -236,7 +236,7 @@ export default function CustomersPage() {
               <TableHead>FullName</TableHead>
               <TableHead>Contact</TableHead>
               <TableHead>Current Area</TableHead>
-              <TableHead>Last Order</TableHead>
+              {/* <TableHead>Last Order</TableHead> */}
               <TableHead>Status</TableHead>
               <TableHead>Actions</TableHead>
             </TableRow>
@@ -249,11 +249,11 @@ export default function CustomersPage() {
                 <TableCell>{customer.fullName}</TableCell>
                 <TableCell>{customer.phone}</TableCell>
                 <TableCell>{customer.address} </TableCell>
-                <TableCell>
+                {/* <TableCell>
                   {customer.created_at
                     ? new Date(customer.created_at).toLocaleDateString()
                     : 'N/A'}
-                </TableCell>
+                </TableCell> */}
                 <TableCell>
                   <Badge
                     variant={
