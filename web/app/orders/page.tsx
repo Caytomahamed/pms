@@ -27,12 +27,13 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { CalendarIcon, Edit, Trash } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { CalendarIcon } from 'lucide-react';
+// import { cn } from '@/lib/utils';
 
 import { EggOrder } from '@/types';
 import Toast from '../components/Toast';
 import { useUsersStore } from '../../store/usersStore';
+import OrderCard from '../components/OrderCard';
 
 export default function OrdersPage() {
   const {
@@ -75,7 +76,6 @@ export default function OrdersPage() {
   useEffect(() => {
     fetchData();
     fetchUsers('farmer');
-    console.log('fetching data');
 
     if (addError) {
       showToast(addError, 'error');
@@ -106,8 +106,6 @@ export default function OrdersPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-
-    console.log('Form data:', formData);
 
     if (!formData.farmerId || !formData.quantity) {
       alert('Please fill in all required fields');
@@ -314,8 +312,8 @@ export default function OrdersPage() {
         ))}
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
+      <div className="mb-10">
+        <CardHeader className="ml-[-15px]">
           <CardTitle>
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)} Orders
           </CardTitle>
@@ -324,76 +322,25 @@ export default function OrdersPage() {
             {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredOrders.length > 0 ? (
-              filteredOrders.map((order) => (
-                <Card key={order.id}>
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <p className="font-semibold">Order #{order.id}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Farm: {order.fullName}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Quantity: {order.quantity}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Deadline:{' '}
-                          {new Date(order.deadline).toLocaleDateString()}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Notes: {order.notes || 'N/A'}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Reason: {order.reason || 'N/A'}
-                        </p>
-                      </div>
-                      <div
-                        className={cn(
-                          'px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                          order.status === 'pending' &&
-                            'bg-yellow-100 text-yellow-800',
-                          order.status === 'declined' &&
-                            'bg-red-100 text-red-800',
-                          order.status === 'accepted' &&
-                            'bg-blue-100 text-blue-800',
-                          order.status === 'completed' &&
-                            'bg-green-100 text-green-800'
-                        )}
-                      >
-                        {order.status}
-                      </div>
-                    </div>
-                    <div className="flex justify-end items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpdate(order)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(Number(order.id))}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-center">
-                No orders found for this status:{' '}
-                {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}.
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+
+        <div className="space-y-4 flex flex-wrap space-x-1">
+          {filteredOrders.length > 0 ? (
+            filteredOrders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                handleDelete={handleDelete}
+                handleEdit={handleUpdate}
+              />
+            ))
+          ) : (
+            <p className="text-muted-foreground text-center">
+              No orders found for this status:{' '}
+              {activeTab.charAt(0).toUpperCase() + activeTab.slice(1)}.
+            </p>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

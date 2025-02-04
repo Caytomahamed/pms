@@ -1,9 +1,17 @@
 const models = require('./index');
+const db = require('../database/dbConfig');
 
 const tableName = 'sales';
 
 exports.find = async (filters = {}) => {
-  return await models.findAll(tableName, filters);
+  return await db("sales as s")
+    .join('users as salesman', 's.salesmanId', 'salesman.id')
+    .join('users as customer', 's.customerId', 'customer.id')
+    .select(
+      's.*',
+      'salesman.username as salesman ',
+      'customer.username as customerName'
+    );
 };
 
 exports.create = async (data) => {

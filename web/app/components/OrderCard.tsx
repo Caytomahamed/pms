@@ -5,44 +5,46 @@ import {
   XCircle,
   Clock,
   CheckCheck,
-  ArrowRight,
+  MoreVertical,
+  Edit,
+  Trash,
 } from 'lucide-react';
+import { EggOrder } from '@/types';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@radix-ui/react-dropdown-menu';
 
-interface Order {
-  id: number;
-  deadline: string;
-  notes: string;
-  quantity: number;
-  status: 'pending' | 'accepted' | 'declined' | 'completed';
-  farmerId: number;
-  created_at: string;
-  updated_at: string;
-  fullName: string;
-}
-
-const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
-  const createdAt = new Date(order.created_at);
+const OrderCard: React.FC<{
+  order: EggOrder;
+  handleDelete: (id: number) => void;
+  handleEdit: (order: EggOrder) => void;
+}> = ({ order, handleDelete, handleEdit }) => {
+  const createdAt = new Date(format(order.created_at ?? '', 'yyyy-MM-dd'));
   const deadline = new Date(order.deadline);
   const now = new Date();
 
   // Define status colors & icons
-interface StatusConfig {
+  interface StatusConfig {
     color: string;
     icon: JSX.Element;
-}
+  }
 
-const statusConfig: Record<Order['status'], StatusConfig> = {
+  const statusConfig: Record<EggOrder['status'], StatusConfig> = {
     pending: { color: 'bg-yellow-400', icon: <Clock size={16} /> },
     accepted: { color: 'bg-blue-500', icon: <CheckCircle size={16} /> },
     declined: { color: 'bg-red-500', icon: <XCircle size={16} /> },
     completed: { color: 'bg-green-500', icon: <CheckCheck size={16} /> },
-};
+  };
 
   const { color, icon } = statusConfig[order.status];
 
   // Calculate progress percentage
   let progress = 0;
-  if (order.status === 'completed' || order.status === 'declined') {
+  if (order.status === 'completed') {
     progress = 100;
   } else {
     const totalDuration = differenceInMilliseconds(deadline, createdAt);
@@ -83,7 +85,7 @@ const statusConfig: Record<Order['status'], StatusConfig> = {
       <div className="mt-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
           <span className="bg-gray-800 text-white w-7 h-7 flex items-center justify-center rounded-full text-xs font-semibold">
-            {order.fullName
+            {(order.fullName ?? '')
               .split(' ')
               .map((n) => n[0])
               .join('')}
@@ -91,7 +93,30 @@ const statusConfig: Record<Order['status'], StatusConfig> = {
           <span className="text-gray-700 font-medium">{order.fullName}</span>
         </div>
         <button className="w-8 h-8 flex items-center justify-center bg-gray-100 rounded-full hover:bg-gray-200">
-          <ArrowRight size={18} />
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              {/* <Button variant="outline">Open</Button> */}
+              <MoreVertical className="h-5 w-5" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-15 bg-white shadow-md rounded-lg p-2">
+              <DropdownMenuGroup>
+                <DropdownMenuItem
+                  onClick={() => handleEdit(order)}
+                  className="flex"
+                >
+                  <Edit size={16} />
+                  <span className="ml-1">Edit</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => handleDelete(Number(order.id))}
+                  className="flex"
+                >
+                  <Trash color="red" size={16} />
+                  <span className="text-red-500 ml-1">Delete</span>
+                </DropdownMenuItem>
+              </DropdownMenuGroup>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </button>
       </div>
     </div>

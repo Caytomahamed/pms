@@ -3,7 +3,7 @@ const inventoryModel = require('../models/inventoryModel');
 const AppError = require('../utils/appError');
 const handleFactory = require('./handleFactory');
 const orderModel = require('../models/ordersModel');
-
+ 
 // check if orderId exist
 exports.checkOrderId = catchAsync(async (req, res, next) => {
   const order = await orderModel.find({ id: req.body.orderId });

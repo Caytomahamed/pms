@@ -73,6 +73,7 @@ export interface Inventory {
   orderId: number;
   created_at?: string;
   updated_at?: string;
+  username?: string;
 }
 
 export interface Sales {

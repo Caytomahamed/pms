@@ -24,7 +24,7 @@ export default function TopUser({ users }: { users: User[] }) {
       <TableBody>
         {users &&
           users.map((user: User) => (
-            <TableRow key={user.id}>
+            <TableRow key={user.fullName}>
               <TableCell>{user.fullName}</TableCell>
               <TableCell>{user.phone} </TableCell>
               <TableCell>{user.count}</TableCell>

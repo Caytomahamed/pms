@@ -26,9 +26,15 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { format } from 'date-fns';
-import { CalendarIcon, Edit, Trash } from 'lucide-react';
+import {
+  CalendarIcon,
+  Edit,
+  Trash,
+  Clock,
+  CheckCircle2,
+  User,
+} from 'lucide-react';
 import { cn } from '@/lib/utils';
-
 import { Sales } from '@/types';
 import Toast from '../components/Toast';
 
@@ -60,43 +66,33 @@ export default function OrdersPage() {
 
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editing, setEditing] = useState(false);
-
-  // Show a toast message when there is an error
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error';
   } | null>(null);
-
-  const showToast = (message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 5000);
-  };
+  const [activeTab, setActiveTab] = useState<Sales['status']>('in_progress');
 
   useEffect(() => {
     fetchData();
     fetchSaleman('salesman');
     fetchCustomer('customer');
-    console.log('fetching data');
 
-    if (addError) {
-      showToast(addError, 'error');
-    }
-
-    if (updateError) {
-      showToast(updateError, 'error');
-    }
-
-    if (deleteError) {
-      showToast(deleteError, 'error');
-    }
+    if (addError) showToast(addError, 'error');
+    if (updateError) showToast(updateError, 'error');
+    if (deleteError) showToast(deleteError, 'error');
   }, [
     fetchCustomer,
-    fetchCustomer,
+    fetchSaleman,
     fetchData,
     addError,
     updateError,
     deleteError,
   ]);
+
+  const showToast = (message: string, type: 'success' | 'error') => {
+    setToast({ message, type });
+    setTimeout(() => setToast(null), 5000);
+  };
 
   const resetForm = () => {
     setFormData({
@@ -120,25 +116,21 @@ export default function OrdersPage() {
       return;
     }
 
+    const saleData = {
+      salesmanId: Number(formData.salesmanId),
+      customerId: Number(formData.customerId),
+      quantity: Number(formData.quantity),
+      estimatedPrice: formData.estimatedPrice,
+      deadline: formData.deadline.toISOString(),
+      status: formData.status as Sales['status'],
+    };
+
     if (editing) {
-      updateSale(Number(formData.id), {
-        salesmanId: Number(formData.salesmanId),
-        customerId: Number(formData.customerId),
-        quantity: Number(formData.quantity),
-        estimatedPrice: formData.estimatedPrice,
-        deadline: formData.deadline.toString(),
-        status: formData.status as Sales['status'],
-      });
-      if (!updateError) showToast('Sales updated successfully', 'success');
+      updateSale(Number(formData.id), saleData);
+      !updateError && showToast('Sales updated successfully', 'success');
     } else {
-      createSale({
-        salesmanId: Number(formData.salesmanId),
-        customerId: Number(formData.customerId),
-        quantity: Number(formData.quantity),
-        estimatedPrice: formData.estimatedPrice,
-        deadline: formData.deadline.toString(),
-      });
-      if (!addError) showToast('Sales Create successfully', 'success');
+      createSale(saleData);
+      !addError && showToast('Sales created successfully', 'success');
     }
 
     resetForm();
@@ -146,13 +138,13 @@ export default function OrdersPage() {
 
   const handleUpdate = (sale: Sales) => {
     setFormData({
-      id: '' + sale.id,
-      salesmanId: '' + sale.salesmanId,
-      customerId: '' + sale.customerId,
-      quantity: '' + sale.quantity,
+      id: String(sale.id),
+      salesmanId: String(sale.salesmanId),
+      customerId: String(sale.customerId),
+      quantity: String(sale.quantity),
       estimatedPrice: sale.estimatedPrice,
       deadline: new Date(sale.deadline),
-      status: '' + sale.status,
+      status: sale.status,
     });
     setEditing(true);
     setIsDialogOpen(true);
@@ -160,15 +152,26 @@ export default function OrdersPage() {
 
   const handleDelete = async (id: number) => {
     await deleteSale(id);
-    if (!deleteError) showToast('Delete successfully', 'success');
+    !deleteError && showToast('Sale deleted successfully', 'success');
   };
-
-  const [activeTab, setActiveTab] = useState<Sales['status']>('in_progress');
 
   const filteredSales = sales.filter((sale) => sale.status === activeTab);
 
+  const calculateProgress = (createdAt: string, deadline: string) => {
+    const created = new Date(createdAt).getTime();
+    const deadlineTime = new Date(deadline).getTime();
+    const now = Date.now();
+
+    const total = deadlineTime - created;
+    const elapsed = now - created;
+
+    if (total <= 0) return 100;
+    const progress = (elapsed / total) * 100;
+    return Math.min(Math.max(progress, 0), 100);
+  };
+
   return (
-    <div className="md:grid-cols-2">
+    <div className="container mx-auto p-4">
       {toast && (
         <Toast
           message={toast.message}
@@ -177,109 +180,88 @@ export default function OrdersPage() {
         />
       )}
 
-      <h1 className="text-2xl font-bold mt-10 mb-5">Sales Management</h1>
-      <div>
+      <div className="flex justify-between items-center mb-8">
+        <h1 className="text-3xl font-bold">Sales Management</h1>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
-            <div className="flex justify-end">
-              <Button onClick={() => resetForm()}>Assigned Salesmen</Button>
-            </div>
+            <Button
+              onClick={resetForm}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Create New Sale
+            </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-md">
             <DialogHeader>
               <DialogTitle>
-                {editing ? 'Edit Egg Order' : 'Create Egg Order'}
+                {editing ? 'Edit Sale' : 'Create New Sale'}
               </DialogTitle>
               <CardDescription>
-                {editing
-                  ? 'Modify the selected Sales.'
-                  : 'Assign the Salesmen into sale the Egg.'}
+                {editing ? 'Update sale details' : 'Enter new sale information'}
               </CardDescription>
             </DialogHeader>
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="farmerId">Salesman ID</Label>
-                {SalesMen.length > 0 ? (
-                  <select
-                    id="farmerId"
-                    value={formData.salesmanId || ''}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        salesmanId: e.target.value,
-                      }))
-                    }
-                    className="w-full border rounded px-2 py-1"
-                  >
-                    <option value="" disabled>
-                      Select a Salesmen
+                <Label>Salesman</Label>
+                <select
+                  value={formData.salesmanId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, salesmanId: e.target.value })
+                  }
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="">Select Salesman</option>
+                  {SalesMen.map((salesman) => (
+                    <option key={salesman.id} value={salesman.id}>
+                      {salesman.username}
                     </option>
-                    {SalesMen.map((salesman) => (
-                      <option key={salesman.id} value={salesman.id}>
-                        {salesman.username}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p>Loading farmers...</p>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="farmerId">Customer ID</Label>
-                {Customers.length > 0 ? (
-                  <select
-                    id="farmerId"
-                    value={formData.customerId || ''}
-                    onChange={(e) =>
-                      setFormData((prev) => ({
-                        ...prev,
-                        customerId: e.target.value,
-                      }))
-                    }
-                    className="w-full border rounded px-2 py-1"
-                  >
-                    <option value="" disabled>
-                      Select a Customer
-                    </option>
-                    {Customers.map((customer) => (
-                      <option key={customer.id} value={customer.id}>
-                        {customer.username}
-                      </option>
-                    ))}
-                  </select>
-                ) : (
-                  <p>Loading farmers...</p>
-                )}
+                  ))}
+                </select>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="quantity">Quantity</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={formData.quantity}
+                <Label>Customer</Label>
+                <select
+                  value={formData.customerId}
                   onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      quantity: e.target.value,
-                    }))
+                    setFormData({ ...formData, customerId: e.target.value })
                   }
-                />
+                  className="w-full p-2 border rounded-md"
+                >
+                  <option value="">Select Customer</option>
+                  {Customers.map((customer) => (
+                    <option key={customer.id} value={customer.id}>
+                      {customer.username}
+                    </option>
+                  ))}
+                </select>
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="quantity">Estimated Price</Label>
-                <Input
-                  id="quantity"
-                  type="number"
-                  value={formData.estimatedPrice}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      estimatedPrice: e.target.value,
-                    }))
-                  }
-                />
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Quantity</Label>
+                  <Input
+                    type="number"
+                    value={formData.quantity}
+                    onChange={(e) =>
+                      setFormData({ ...formData, quantity: e.target.value })
+                    }
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Estimated Price</Label>
+                  <Input
+                    type="number"
+                    value={formData.estimatedPrice}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        estimatedPrice: e.target.value,
+                      })
+                    }
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -291,7 +273,7 @@ export default function OrdersPage() {
                       className="w-full justify-start text-left font-normal"
                     >
                       <CalendarIcon className="mr-2 h-4 w-4" />
-                      {format(new Date(), 'PPP')}
+                      {format(formData.deadline, 'PPP')}
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-auto p-0">
@@ -299,11 +281,7 @@ export default function OrdersPage() {
                       mode="single"
                       selected={formData.deadline}
                       onSelect={(date) =>
-                        date &&
-                        setFormData((prev) => ({
-                          ...prev,
-                          deadline: date,
-                        }))
+                        date && setFormData({ ...formData, deadline: date })
                       }
                       initialFocus
                     />
@@ -311,133 +289,195 @@ export default function OrdersPage() {
                 </Popover>
               </div>
 
-              <div className="space-y-2">
-                {editing && (
-                  <>
-                    <Label htmlFor="status">Status</Label>
-                    <select
-                      id="status"
-                      value={formData.status}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          status: e.target.value,
-                        }))
-                      }
-                      className="w-full border rounded px-2 py-1"
-                    >
-                      <option value="in_progress">in_progress</option>
-                      <option value="completed">completed</option>
-                    </select>
-                  </>
-                )}
-              </div>
+              {editing && (
+                <div className="space-y-2">
+                  <Label>Status</Label>
+                  <select
+                    value={formData.status}
+                    onChange={(e) =>
+                      setFormData({ ...formData, status: e.target.value })
+                    }
+                    className="w-full p-2 border rounded-md"
+                  >
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                  </select>
+                </div>
+              )}
 
-              <Button type="submit" className="w-full">
-                {editing ? 'Update Sale' : 'Assign Sale'}
+              <Button
+                type="submit"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                {editing ? 'Update Sale' : 'Create Sale'}
               </Button>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
-      {/* Tabs for filtering orders */}
-      <div className="flex justify-start space-x-4 mb-4">
+      <div className="mb-6 flex gap-2">
         {['in_progress', 'completed'].map((status) => (
           <Button
             key={status}
             variant={activeTab === status ? 'default' : 'outline'}
-            onClick={() =>
-              setActiveTab((status as Sales['status']) || 'in_progress')
-            }
+            onClick={() => setActiveTab(status as Sales['status'])}
+            className="capitalize"
           >
-            {status.charAt(0).toUpperCase() + status.slice(1)}
+            {status.replace('_', ' ')}
           </Button>
         ))}
       </div>
 
-      <Card className="mt-6">
-        <CardHeader>
-          <CardTitle>
-            {(activeTab || 'in_progress').charAt(0).toUpperCase() +
-              (activeTab || 'in_progress').slice(1)}{' '}
-            Sales
-          </CardTitle>
-          <CardDescription>
-            This section displays all sales with status:{' '}
-            {(activeTab || 'in_progress').charAt(0).toUpperCase() +
-              (activeTab || 'in_progress').slice(1)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            {filteredSales.length > 0 ? (
-              filteredSales.map((sale) => (
-                <Card
-                  key={sale.id}
-                  className={`${
-                    activeTab === 'completed' ? 'bg-green-50' : 'bg-red-100'
-                  }`}
-                >
-                  <CardContent className="pt-6">
-                    <div className="flex justify-between items-start">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {filteredSales.map((sale) => {
+          const progress = calculateProgress(sale.created_at, sale.deadline);
+          const isOverdue = progress >= 100;
+
+          return (
+            <Card key={sale.id} className="hover:shadow-lg transition-shadow">
+              <CardContent className="p-6">
+                <div className="absolute top-4 right-4">
+                  <span
+                    className={cn(
+                      'inline-flex items-center px-3 py-1 rounded-full text-sm',
+                      sale.status === 'completed'
+                        ? 'bg-green-100 text-green-800'
+                        : 'bg-yellow-100 text-yellow-800'
+                    )}
+                  >
+                    {sale.status === 'completed' ? (
+                      <CheckCircle2 className="w-4 h-4 mr-1" />
+                    ) : (
+                      <Clock className="w-4 h-4 mr-1" />
+                    )}
+                    {sale.status.replace('_', ' ')}
+                  </span>
+                </div>
+
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold">Sale #{sale.id}</h3>
+                  <p className="text-sm text-gray-500">
+                    Created: {format(new Date(sale.created_at), 'MMM dd, yyyy')}
+                  </p>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-100 rounded-lg">
+                      <User className="w-6 h-6 text-blue-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Salesman</p>
+                      <p className="font-medium">{sale.salesman}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-purple-100 rounded-lg">
+                      <User className="w-6 h-6 text-purple-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Customer</p>
+                      <p className="font-medium">{sale.customerName}</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Quantity</p>
+                      <p className="font-medium text-xl text-blue-600">
+                        {sale.quantity}
+                        <span className="text-sm ml-1 text-gray-500">
+                          units
+                        </span>
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Estimated Price</p>
+                      <p className="font-medium text-xl text-green-600">
+                        ${parseFloat(sale.estimatedPrice).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                  {sale.status === 'completed' && (
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <p className="font-semibold">Sale #{sale.id}</p>
-                        <p className="text-sm text-muted-foreground">
-                          Salesman: {sale.salesmanId}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Customer: {sale.customerId}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Quantity: {sale.quantity}
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Estimated Price: ${sale.estimatedPrice}
+                        <p className="text-sm text-gray-500">Actual Quantity</p>
+                        <p className="font-medium text-xl text-blue-600">
+                          {sale.actualQuantity}
+                          <span className="text-sm ml-1 text-gray-500">
+                            units
+                          </span>
                         </p>
                       </div>
-                      <div
-                        className={cn(
-                          'px-2.5 py-0.5 rounded-full text-xs font-semibold',
-                          sale.status === 'in_progress' &&
-                            'bg-blue-100 text-blue-800',
-                          sale.status === 'completed' &&
-                            'bg-orange-100 text-green-800'
-                        )}
-                      >
-                        {sale.status}
+                      <div>
+                        <p className="text-sm text-gray-500">Actual Price</p>
+                        <p className="font-medium text-xl text-green-600">
+                          ${parseFloat(sale.actualPrice).toLocaleString()}
+                        </p>
                       </div>
                     </div>
-                    <div className="flex justify-end items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleUpdate(sale)}
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => handleDelete(Number(sale.id))}
-                      >
-                        <Trash className="h-4 w-4" />
-                      </Button>
+                  )}
+
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-500">Deadline</span>
+                      <span className="font-medium">
+                        {format(new Date(sale.deadline), 'MMM dd, yyyy')}
+                      </span>
                     </div>
-                  </CardContent>
-                </Card>
-              ))
-            ) : (
-              <p className="text-muted-foreground text-center">
-                No sales found for this status:{' '}
-                {(activeTab || 'in_progress').charAt(0).toUpperCase() +
-                  (activeTab || 'in_progress').slice(1)}
-                .
-              </p>
-            )}
-          </div>
-        </CardContent>
-      </Card>
+                    <div className="relative pt-2">
+                      <div className="flex mb-2 items-center justify-between">
+                        <div className="w-full bg-gray-200 rounded-full h-2">
+                          <div
+                            className={cn(
+                              'h-2 rounded-full',
+                              isOverdue
+                                ? 'bg-red-500'
+                                : sale.status === 'completed'
+                                ? 'bg-green-500'
+                                : 'bg-blue-500'
+                            )}
+                            style={{ width: `${Math.min(progress, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleUpdate(sale)}
+                    >
+                      <Edit className="w-4 h-4 mr-2" />
+                      Edit
+                    </Button>
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => handleDelete(Number(sale.id))}
+                    >
+                      <Trash className="w-4 h-4 mr-2" />
+                      Delete
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+
+      {filteredSales.length === 0 && (
+        <div className="text-center py-12">
+          <p className="text-gray-500 text-lg">
+            No {activeTab.replace('_', ' ')} sales found
+          </p>
+        </div>
+      )}
     </div>
   );
 }

@@ -41,6 +41,7 @@ export const useOrdersStore = create<OrdersStore>((set) => ({
         throw new Error('Failed to fetch orders');
       }
       const data: EggOrder[] = await response.json().then((data) => data.data);
+      console.log('orders', data);
       set({ orders: data });
     } catch (error) {
       console.error('Error fetching orders:', error);
@@ -103,7 +104,9 @@ export const useOrdersStore = create<OrdersStore>((set) => ({
       const updated: EggOrder = await response.json().then((data) => data.data);
       set((state) => ({
         orders: state.orders.map((order) =>
-          order.id === id ? updated : order
+          order.id === id
+            ? { ...updated, fullName: updatedOrder.fullName }
+            : order
         ),
       }));
     } catch (error) {
@@ -119,6 +122,7 @@ export const useOrdersStore = create<OrdersStore>((set) => ({
       });
       if (!response.ok) {
         const result = await response.json();
+        console.log('error', result);
         set(() => ({ deleteError: result.message || 'Failed to add User' }));
         throw new Error('Failed to delete order');
       }

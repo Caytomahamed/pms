@@ -41,7 +41,7 @@ export function TeamSwitcher({
               <div className="grid flex-1 text-left text-sm leading-tight">
                 <span className="truncate font-semibold">
                   {/* {activeTeam.name} */}
-                  Poltry Farm Inc.
+                  Poultry Farm Inc.
                 </span>
                 <span className="truncate text-xs">
                   {/* {activeTeam.plan} */}
